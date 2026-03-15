@@ -449,11 +449,80 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: AppPanelButton(
-                                    label: usedPoints > 0 ? '광고 초기화' : '초기화 불가',
+                                    label: usedPoints > 0
+                                        ? '광고 초기화 ${((5 - progress.adPointResetDailyCount).clamp(0, 5))}/5'
+                                        : '초기화 불가',
                                     compact: true,
                                     onPressed: usedPoints > 0
                                         ? () {
+                                            final now = DateTime.now();
+                                            final month = now.month.toString().padLeft(2, '0');
+                                            final day = now.day.toString().padLeft(2, '0');
+                                            final today = '${now.year}-$month-$day';
+                                            if (progress.adDailyDate != today) {
+                                              progress.adDailyDate = today;
+                                              progress.adPointResetDailyCount = 0;
+                                              progress.adShardDrawTenDailyCount = 0;
+                                            }
+                                            if (progress.adPointResetDailyCount >= 5) {
+                                              showDialog<void>(
+                                                context: context,
+                                                builder: (context) => Dialog(
+                                                  backgroundColor: Colors.transparent,
+                                                  child: Container(
+                                                    padding: const EdgeInsets.all(16),
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(0xFF102033),
+                                                      borderRadius: BorderRadius.circular(20),
+                                                      border: Border.all(
+                                                        color: const Color(0xFF83B5FF),
+                                                        width: 1.4,
+                                                      ),
+                                                      boxShadow: const [
+                                                        BoxShadow(
+                                                          color: Color(0x66000000),
+                                                          blurRadius: 20,
+                                                          offset: Offset(0, 10),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: Column(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        const Text(
+                                                          '알림',
+                                                          style: TextStyle(
+                                                            color: Color(0xFFF3F7FF),
+                                                            fontSize: 18,
+                                                            fontWeight: FontWeight.w900,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(height: 12),
+                                                        const Text(
+                                                          '광고 포인트 초기화는 하루 5회까지만 가능합니다.',
+                                                          textAlign: TextAlign.center,
+                                                          style: TextStyle(
+                                                            color: Color(0xFFD9E7FF),
+                                                            fontSize: 13,
+                                                            fontWeight: FontWeight.w700,
+                                                            height: 1.35,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(height: 14),
+                                                        AppPanelButton(
+                                                          label: '확인',
+                                                          compact: true,
+                                                          onPressed: () => Navigator.of(context).pop(),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                              return;
+                                            }
                                             applyChange(() {
+                                              progress.adPointResetDailyCount += 1;
                                               lp.identity = 0;
                                               lp.operations = 0;
                                               lp.synergy = 0;

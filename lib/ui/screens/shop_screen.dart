@@ -280,8 +280,10 @@ class _ShopScreenState extends State<ShopScreen> {
 
   Widget _shardGachaPanel(Color panelBorder) {
     _syncShardDrawDailyLimit();
+    _syncAdDailyLimit();
     final singleRemain = (5 - progress.shardDrawSingleDailyCount).clamp(0, 5);
     final tenRemain = (5 - progress.shardDrawTenDailyCount).clamp(0, 5);
+    final adTenRemain = (1 - progress.adShardDrawTenDailyCount).clamp(0, 1);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -337,6 +339,15 @@ class _ShopScreenState extends State<ShopScreen> {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 8),
+        AppPanelButton(
+          label: '광고보고 10회 뽑기\n$adTenRemain/1',
+          borderColor: panelBorder,
+          foregroundColor: const Color(0xFFF3F7FF),
+          backgroundColor: const Color(0xCC14405C),
+          compact: true,
+          onPressed: () => _handleDraw(count: 10, useCost: false, useTicket: false, useAd: true),
         ),
       ],
     );
@@ -1452,12 +1463,15 @@ class _ShopScreenState extends State<ShopScreen> {
     required int count,
     required bool useCost,
     required bool useTicket,
+    bool useAd = false,
   }) async {
     _syncShardDrawDailyLimit();
+    _syncAdDailyLimit();
     final outcome = await _rollMany(
       count: count,
       useCost: useCost,
       useTicket: useTicket,
+      useAd: useAd,
     );
     if (!mounted) return;
     if (outcome.error != null) {
@@ -1475,6 +1489,14 @@ class _ShopScreenState extends State<ShopScreen> {
     progress.shardDrawDailyDate = today;
     progress.shardDrawSingleDailyCount = 0;
     progress.shardDrawTenDailyCount = 0;
+  }
+
+  void _syncAdDailyLimit() {
+    final today = _todayKey();
+    if (progress.adDailyDate == today) return;
+    progress.adDailyDate = today;
+    progress.adPointResetDailyCount = 0;
+    progress.adShardDrawTenDailyCount = 0;
   }
 
   String _todayKey() {
@@ -1735,12 +1757,21 @@ class _ShopScreenState extends State<ShopScreen> {
     required int count,
     required bool useCost,
     required bool useTicket,
+    required bool useAd,
   }) async {
     final b = banner;
     if (b == null) {
       return const _ShardDrawOutcome(error: '배너 로딩 중');
     }
-    if (useTicket) {
+    if (useAd) {
+      if (count != 10) {
+        return const _ShardDrawOutcome(error: '광고 뽑기는 10회만 가능합니다.');
+      }
+      if (progress.adShardDrawTenDailyCount >= 1) {
+        return const _ShardDrawOutcome(error: '광고 10회 뽑기는 하루 1회까지만 가능합니다.');
+      }
+      progress.adShardDrawTenDailyCount += 1;
+    } else if (useTicket) {
       if (progress.shardDrawTickets < count) {
         return const _ShardDrawOutcome(error: '티켓 부족');
       }

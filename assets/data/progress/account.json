@@ -8,6 +8,9 @@
   "shardDrawDailyDate": "",
   "shardDrawSingleDailyCount": 0,
   "shardDrawTenDailyCount": 0,
+  "adDailyDate": "",
+  "adPointResetDailyCount": 0,
+  "adShardDrawTenDailyCount": 0,
   "core": {
     "level": 1,
     "hp": 3000,

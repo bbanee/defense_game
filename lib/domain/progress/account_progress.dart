@@ -53,6 +53,9 @@ class AccountProgress {
   String? _shardDrawDailyDate;
   int? _shardDrawSingleDailyCount;
   int? _shardDrawTenDailyCount;
+  String? _adDailyDate;
+  int? _adPointResetDailyCount;
+  int? _adShardDrawTenDailyCount;
   final Map<String, int> bestWaveByDifficulty;
   final Map<String, TowerProgress> towers;
   final Map<String, TowerLobbyUpgradeProgress> lobbyUpgrades;
@@ -68,6 +71,12 @@ class AccountProgress {
   set shardDrawSingleDailyCount(int value) => _shardDrawSingleDailyCount = value;
   int get shardDrawTenDailyCount => _shardDrawTenDailyCount ?? 0;
   set shardDrawTenDailyCount(int value) => _shardDrawTenDailyCount = value;
+  String get adDailyDate => _adDailyDate ?? '';
+  set adDailyDate(String value) => _adDailyDate = value;
+  int get adPointResetDailyCount => _adPointResetDailyCount ?? 0;
+  set adPointResetDailyCount(int value) => _adPointResetDailyCount = value;
+  int get adShardDrawTenDailyCount => _adShardDrawTenDailyCount ?? 0;
+  set adShardDrawTenDailyCount(int value) => _adShardDrawTenDailyCount = value;
 
   AccountProgress({
     this.accountGold = 0,
@@ -80,6 +89,9 @@ class AccountProgress {
     String? shardDrawDailyDate = '',
     int? shardDrawSingleDailyCount = 0,
     int? shardDrawTenDailyCount = 0,
+    String? adDailyDate = '',
+    int? adPointResetDailyCount = 0,
+    int? adShardDrawTenDailyCount = 0,
     Map<String, int>? bestWaveByDifficulty,
     Map<String, TowerProgress>? towers,
     Map<String, TowerLobbyUpgradeProgress>? lobbyUpgrades,
@@ -89,6 +101,9 @@ class AccountProgress {
         _shardDrawDailyDate = shardDrawDailyDate ?? '',
         _shardDrawSingleDailyCount = shardDrawSingleDailyCount ?? 0,
         _shardDrawTenDailyCount = shardDrawTenDailyCount ?? 0,
+        _adDailyDate = adDailyDate ?? '',
+        _adPointResetDailyCount = adPointResetDailyCount ?? 0,
+        _adShardDrawTenDailyCount = adShardDrawTenDailyCount ?? 0,
         bestWaveByDifficulty = bestWaveByDifficulty ?? {},
         towers = towers ?? {},
         lobbyUpgrades = lobbyUpgrades ?? {},
@@ -128,6 +143,9 @@ class AccountProgress {
       shardDrawDailyDate: json['shardDrawDailyDate'] as String? ?? '',
       shardDrawSingleDailyCount: json['shardDrawSingleDailyCount'] as int? ?? 0,
       shardDrawTenDailyCount: json['shardDrawTenDailyCount'] as int? ?? 0,
+      adDailyDate: json['adDailyDate'] as String? ?? '',
+      adPointResetDailyCount: json['adPointResetDailyCount'] as int? ?? 0,
+      adShardDrawTenDailyCount: json['adShardDrawTenDailyCount'] as int? ?? 0,
       bestWaveByDifficulty: bestWaveByDifficulty,
       towers: towerMap,
       lobbyUpgrades: lobbyMap,
@@ -147,6 +165,9 @@ class AccountProgress {
       'shardDrawDailyDate': shardDrawDailyDate,
       'shardDrawSingleDailyCount': shardDrawSingleDailyCount,
       'shardDrawTenDailyCount': shardDrawTenDailyCount,
+      'adDailyDate': adDailyDate,
+      'adPointResetDailyCount': adPointResetDailyCount,
+      'adShardDrawTenDailyCount': adShardDrawTenDailyCount,
       'bestWaveByDifficulty': bestWaveByDifficulty,
       'towers': towers.values.map((e) => e.toJson()).toList(),
       'lobbyUpgrades': {
@@ -178,6 +199,9 @@ class AccountProgress {
       shardDrawDailyDate: shardDrawDailyDate,
       shardDrawSingleDailyCount: shardDrawSingleDailyCount,
       shardDrawTenDailyCount: shardDrawTenDailyCount,
+      adDailyDate: adDailyDate,
+      adPointResetDailyCount: adPointResetDailyCount,
+      adShardDrawTenDailyCount: adShardDrawTenDailyCount,
       bestWaveByDifficulty: Map<String, int>.from(bestWaveByDifficulty),
       towers: copyTowers,
       lobbyUpgrades: copyLobby,

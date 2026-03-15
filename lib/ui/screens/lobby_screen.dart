@@ -273,15 +273,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
     if (progress == null) return;
     const energyAmount = 5;
     const diamondCost = 50;
-    if (progress.diamonds < diamondCost) {
-      await _showStyledNoticeDialog(
-        title: '다이아 부족',
-        body: '에너지 $energyAmount개 구매에는 다이아 $diamondCost개가 필요합니다.',
-      );
-      return;
-    }
-
-    final ok = await showDialog<bool>(
+    final action = await showDialog<String>(
       context: context,
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
@@ -314,7 +306,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
               ),
               const SizedBox(height: 12),
               const Text(
-                '다이아 50개로 에너지 5개를 구매하시겠습니까?',
+                '에너지 5개를 얻는 방법을 선택하세요.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Color(0xFFD9E7FF),
@@ -328,23 +320,38 @@ class _LobbyScreenState extends State<LobbyScreen> {
                 children: [
                   Expanded(
                     child: AppPanelButton(
-                      label: '취소',
+                      label: '닫기',
                       borderColor: const Color(0xFF83B5FF),
                       foregroundColor: const Color(0xFFF3F7FF),
                       backgroundColor: const Color(0x99122336),
                       compact: true,
-                      onPressed: () => Navigator.of(context).pop(false),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppPanelButton(
+                      label: '다이아로 구매',
+                      borderColor: const Color(0xFF83B5FF),
+                      foregroundColor: const Color(0xFFF3F7FF),
+                      backgroundColor: const Color(0xCC17304B),
+                      compact: true,
+                      onPressed: () => Navigator.of(context).pop('diamond'),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: AppPanelButton(
-                      label: '구매',
+                      label: '광고보고 얻기',
                       borderColor: const Color(0xFF83B5FF),
                       foregroundColor: const Color(0xFFF3F7FF),
-                      backgroundColor: const Color(0xCC17304B),
+                      backgroundColor: const Color(0xCC14405C),
                       compact: true,
-                      onPressed: () => Navigator.of(context).pop(true),
+                      onPressed: () => Navigator.of(context).pop('ad'),
                     ),
                   ),
                 ],
@@ -355,11 +362,26 @@ class _LobbyScreenState extends State<LobbyScreen> {
       ),
     );
 
-    if (ok != true) return;
-    setState(() {
-      progress.diamonds -= diamondCost;
-      progress.energy += energyAmount;
-    });
+    if (action == null) return;
+    if (action == 'diamond') {
+      if (progress.diamonds < diamondCost) {
+        await _showStyledNoticeDialog(
+          title: '다이아 부족',
+          body: '에너지 $energyAmount개 구매에는 다이아 $diamondCost개가 필요합니다.',
+        );
+        return;
+      }
+      setState(() {
+        progress.diamonds -= diamondCost;
+        progress.energy += energyAmount;
+      });
+    } else if (action == 'ad') {
+      setState(() {
+        progress.energy += energyAmount;
+      });
+    } else {
+      return;
+    }
     await _progressRepo.save(progress);
   }
 
@@ -445,7 +467,18 @@ class _LobbyScreenState extends State<LobbyScreen> {
                     const SizedBox(height: 20),
                     Row(
                       children: [
-                        Text('게임 모드', style: TextStyle(color: textColor)),
+                        SizedBox(
+                          width: _LobbyFieldLabelWidth.value,
+                          child: Text(
+                            '모드',
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              height: 1.0,
+                            ),
+                          ),
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: AppPanelBox(
@@ -453,26 +486,34 @@ class _LobbyScreenState extends State<LobbyScreen> {
                             backgroundColor: panelFill,
                             borderRadius: BorderRadius.circular(14),
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton<String>(
-                                isExpanded: true,
-                                value: _gameMode,
-                                dropdownColor: const Color(0xFF12233A),
-                                iconEnabledColor: textColor,
-                                style: TextStyle(
-                                  color: textColor,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
+                            child: Row(
+                              children: [
+                                const Icon(Icons.layers_rounded, size: 14, color: Color(0xFF8FD3FF)),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      isExpanded: true,
+                                      value: _gameMode,
+                                      dropdownColor: const Color(0xFF12233A),
+                                      iconEnabledColor: textColor,
+                                      style: TextStyle(
+                                        color: textColor,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                      items: const [
+                                        DropdownMenuItem(value: '스토리 모드', child: Text('스토리 모드')),
+                                        DropdownMenuItem(value: '무한 모드', child: Text('무한 모드')),
+                                      ],
+                                      onChanged: (value) {
+                                        if (value == null) return;
+                                        setState(() => _gameMode = value);
+                                      },
+                                    ),
+                                  ),
                                 ),
-                                items: const [
-                                  DropdownMenuItem(value: '스토리 모드', child: Text('스토리 모드')),
-                                  DropdownMenuItem(value: '무한 모드', child: Text('무한 모드')),
-                                ],
-                                onChanged: (value) {
-                                  if (value == null) return;
-                                  setState(() => _gameMode = value);
-                                },
-                              ),
+                              ],
                             ),
                           ),
                         ),
@@ -482,7 +523,18 @@ class _LobbyScreenState extends State<LobbyScreen> {
                     if (_gameMode == '스토리 모드') ...[
                     Row(
                       children: [
-                        Text('난이도', style: TextStyle(color: textColor)),
+                        SizedBox(
+                          width: _LobbyFieldLabelWidth.value,
+                          child: Text(
+                            '난이도',
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              height: 1.0,
+                            ),
+                          ),
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: AppPanelBox(
@@ -721,6 +773,12 @@ class _LobbyScreenState extends State<LobbyScreen> {
     );
   }
 
+}
+
+class _LobbyFieldLabelWidth {
+  static const double value = 58;
+
+  const _LobbyFieldLabelWidth();
 }
 
 class _TopBar extends StatelessWidget {
