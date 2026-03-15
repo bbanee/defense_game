@@ -1,0 +1,6 @@
+{
+  "id": "endless_survival",
+  "nameKey": "mode.endless",
+  "winCondition": "none",
+  "loseCondition": "coreDestroyed"
+}

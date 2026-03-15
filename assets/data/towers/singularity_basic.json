@@ -1,0 +1,37 @@
+﻿{
+    "id":  "singularity_basic",
+    "nameKey":  "tower.singularity.name",
+    "descKey":  "tower.singularity.desc",
+    "rarity":  "legendary",
+    "baseDamage":  42,
+    "fireRate":  0.5,
+    "range":  132,
+    "attackType":  "projectile",
+    "projectileSpeed":  420,
+    "projectileSize":  32,
+    "buildCost":  200,
+    "upgradeCostBase":  170,
+    "upgradeCostMultiplier":  0.8,
+    "sellRefundRate":  0.75,
+    "unlockShards":  40,
+    "levelUpShardsBase":  27,
+    "levelUpShardsMultiplier":  1.43,
+    "ultimateChance":  0.13,
+    "ultimateDamageMultiplier":  2.7,
+    "effects":  [
+                    {
+                        "type":  "max_hp_burst",
+                        "value":  0.05,
+                        "durationSec":  1.5,
+                        "chance":  0.6,
+                        "atLevel":  1
+                    },
+                    {
+                        "type":  "max_hp_burst",
+                        "value":  0.1,
+                        "durationSec":  2,
+                        "chance":  0.45,
+                        "atLevel":  7
+                    }
+                ]
+}

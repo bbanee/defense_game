@@ -1,0 +1,8 @@
+{
+  "id": "elite_basic",
+  "nameKey": "enemy.elite.name",
+  "archetype": "elite",
+  "hp": 220,
+  "speed": 38,
+  "rewardBattleGold": 20
+}

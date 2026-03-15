@@ -1,0 +1,266 @@
+{
+  "project": "Project NEON BASTION",
+  "prompt_version": "ultimate_effect_v1_chatgpt_postprocess",
+  "goal": "One ultimate-like signature VFX prompt for each tower, optimized for ChatGPT image generation and later background removal in post-processing.",
+  "workflow": "Generate on pure black background, then cut out and composite in-engine or in post using additive/screen or mixed blending as needed.",
+  "render_note": "These are effect-only prompts. They intentionally exclude towers, monsters, weapons, scenery, and UI.",
+  "retry_note": "If the result includes a tower, weapon, scenery, or looks like a cinematic explosion scene, retry with this sentence appended: remove all units and scenery, keep only one isolated ultimate VFX element on a pure black background, make the silhouette cleaner, larger, and easier to read as a gameplay effect asset.",
+  "effect_style_guide": "cyberpunk tower defense VFX asset, premium mobile game ultimate skill illustration, effect-only image, single large VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no tower, no monster, no weapon source, no environment, no floor, no smoke clouds, no debris chunks, no text, no logo, no watermark",
+  "towers": [
+    {
+      "id": "pulse_turret",
+      "name_ko": "펄스 터렛",
+      "name_en": "Pulse Turret",
+      "rarity": "common",
+      "visual_hook": "compact dual-barrel pulse gun with a round reactor chest and a low hex base",
+      "signature_palette": "saturated cyan reactor, matte navy armor panels, warm copper conductive rings, light gray support frame",
+      "ultimate_effect": {
+        "effect_name_ko": "오버드라이브 펄스 스톰",
+        "effect_name_en": "Overdrive Pulse Storm",
+        "use_case": "ultimate burst / radial EMP",
+        "blend_hint": "additive",
+        "shape_language": "three concentric shock rings around a blazing core",
+        "color_anchor": "white-cyan core, saturated cyan rings, warm copper arcs",
+        "prompt": "cyberpunk tower defense VFX asset, Pulse Turret ultimate effect, gigantic overdrive EMP bloom with three concentric cyan shock rings, blinding white-cyan reactor center, warm copper conductive arcs weaving between the rings, crisp hex data fragments and sharp pulse sparks, clean circular layered radial silhouette, balanced human defense technology feeling, premium mobile game ultimate skill illustration, effect-only image, single large VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, no turret, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "railguard_battery",
+      "name_ko": "레일가드 포대",
+      "name_en": "Railguard Battery",
+      "rarity": "common",
+      "visual_hook": "precision anti-armor rail platform with an extra-long barrel and open accelerator spine",
+      "signature_palette": "ceramic white outer shell, graphite rail spine, burnt orange magnetic coils, dark steel joints",
+      "ultimate_effect": {
+        "effect_name_ko": "저지먼트 레일 랜스",
+        "effect_name_en": "Judgment Rail Lance",
+        "use_case": "ultimate shot / piercing super beam",
+        "blend_hint": "additive",
+        "shape_language": "one giant diagonal rail lance with a magnetic tunnel",
+        "color_anchor": "white-hot core, burnt orange accelerator coils, dark graphite spark edges",
+        "prompt": "cyberpunk tower defense VFX asset, Railguard Battery ultimate effect, colossal orange-white judgment rail lance with an ultra-thin white-hot needle core inside a long magnetic tunnel, burnt-orange accelerator rings torn open along the beam path, disciplined side spark fans and a fractured linear impact wave, razor-straight high-velocity silhouette, precision anti-armor sniper superweapon energy, premium mobile game ultimate skill illustration, effect-only image, single diagonal VFX element, centered overall composition, full effect visible, enough empty margin, pure black background, high contrast glow, no turret, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "scatter_blaster",
+      "name_ko": "스캐터 블래스터",
+      "name_en": "Scatter Blaster",
+      "rarity": "common",
+      "visual_hook": "short-range breacher turret with a bulldog profile and a huge drum muzzle",
+      "signature_palette": "matte black shell, hazard yellow armor plates, glowing orange blast chamber, raw steel recoil parts",
+      "ultimate_effect": {
+        "effect_name_ko": "브리처 노바",
+        "effect_name_en": "Breacher Nova",
+        "use_case": "ultimate blast / short-range cone burst",
+        "blend_hint": "mixed",
+        "shape_language": "a huge forward-spreading semicircle blast fan",
+        "color_anchor": "hot orange core, hazard yellow shock fan, steel sparks",
+        "prompt": "cyberpunk tower defense VFX asset, Scatter Blaster ultimate effect, massive breacher nova cone with a hot orange detonation core, a wide hazard-yellow semicircular shockwave, dense pellet streak fans, jagged industrial spark ribbons, and torn steel flash accents, brutal close-range riot cannon overload feeling, thick aggressive forward-spreading silhouette, premium mobile game ultimate skill illustration, effect-only image, single large VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, no turret, no weapon source, no character, no environment, no floor, no smoke clouds, no debris chunks, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "frost_relay",
+      "name_ko": "프로스트 릴레이",
+      "name_en": "Frost Relay",
+      "rarity": "common",
+      "visual_hook": "cryo control obelisk with a floating freeze ring and vertical crystal fins",
+      "signature_palette": "porcelain white body, ice blue energy core, translucent cyan crystal fins, frost-silver mechanical joints",
+      "ultimate_effect": {
+        "effect_name_ko": "앱솔루트 제로 헤일로",
+        "effect_name_en": "Absolute Zero Halo",
+        "use_case": "ultimate field / freeze dome",
+        "blend_hint": "additive",
+        "shape_language": "a round cryo dome with a hex freeze ring and crystal crown",
+        "color_anchor": "white frozen core, ice blue halo, translucent cyan crystals",
+        "prompt": "cyberpunk tower defense VFX asset, Frost Relay ultimate effect, enormous absolute zero cryo dome with a bright frozen white center, layered ice-blue halo rings, a geometric hex freeze seal, translucent cyan crystal spikes bursting outward, and fine frost shard particles, elegant control-type ultimate with a clean dome silhouette instead of a fire explosion, premium mobile game ultimate skill illustration, effect-only image, single large VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, no turret, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "drone_dock",
+      "name_ko": "드론 도크",
+      "name_en": "Drone Dock",
+      "rarity": "common",
+      "visual_hook": "flat circular drone launch pad with two hornet-like attack drones orbiting above it",
+      "signature_palette": "teal runway panels, off-white housing, black safety stripes, electric blue thrusters",
+      "ultimate_effect": {
+        "effect_name_ko": "호넷 스웜 커맨드",
+        "effect_name_en": "Hornet Swarm Command",
+        "use_case": "ultimate strike pattern / swarm dive attack",
+        "blend_hint": "additive",
+        "shape_language": "a circular command reticle with many spiral dive trails",
+        "color_anchor": "teal command ring, electric blue strike trails, off-white target flashes",
+        "prompt": "cyberpunk tower defense VFX asset, Drone Dock ultimate effect, large teal swarm command reticle with multiple electric-blue dive trails spiraling inward from every side, paired triangular lock-on markers, tiny off-white strike flashes at the convergence zone, fast coordinated hornet attack pattern made only of luminous flight routes and command pulses, ring-plus-spiral silhouette, premium mobile game ultimate skill illustration, effect-only image, single large VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, no drones, no turret, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "tesla_arc_node",
+      "name_ko": "테슬라 아크 노드",
+      "name_en": "Tesla Arc Node",
+      "rarity": "rare",
+      "visual_hook": "electrical coil cage around a bright spherical plasma core",
+      "signature_palette": "dark copper frame, violet ceramic insulators, electric blue arcs, charcoal base",
+      "ultimate_effect": {
+        "effect_name_ko": "템페스트 케이지",
+        "effect_name_en": "Tempest Cage",
+        "use_case": "ultimate field / lightning prison",
+        "blend_hint": "additive",
+        "shape_language": "a spherical electric cage around a bright plasma core",
+        "color_anchor": "white-blue core, electric blue arcs, violet resonance halo",
+        "prompt": "cyberpunk tower defense VFX asset, Tesla Arc Node ultimate effect, giant spherical lightning prison with a bright white-blue plasma orb, dense electric-blue arc lattice wrapping around it, branching chain bolts snapping outward and reconnecting, a violet resonance halo and sharp spark forks, storm-cage silhouette with clear volume, premium mobile game ultimate skill illustration, effect-only image, single large VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "missile_matrix",
+      "name_ko": "미사일 매트릭스",
+      "name_en": "Missile Matrix",
+      "rarity": "rare",
+      "visual_hook": "boxy vertical missile battery made of stacked launch cells",
+      "signature_palette": "olive drab launch boxes, dark graphite chassis, bright orange warning panels, pale steel hinges",
+      "ultimate_effect": {
+        "effect_name_ko": "스카이폴 미사일 레인",
+        "effect_name_en": "Skyfall Missile Rain",
+        "use_case": "ultimate bombardment / saturation strike",
+        "blend_hint": "mixed",
+        "shape_language": "many descending contrails converging into one large strike zone",
+        "color_anchor": "orange warning trails, white impact cores, graphite heat streak accents",
+        "prompt": "cyberpunk tower defense VFX asset, Missile Matrix ultimate effect, massive skyfall saturation strike with many descending orange-white missile contrails converging into one large bombardment point, stacked warning reticle rings, sharp V-shaped rocket streak patterns, a bright clustered impact crown, and disciplined military strike geometry, vertical rain-like silhouette with a powerful central hit zone, premium mobile game ultimate skill illustration, effect-only image, single large VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, no launcher, no weapon source, no character, no environment, no floor, no smoke clouds, no debris chunks, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "holo_sniper_spire",
+      "name_ko": "홀로 스나이퍼 스파이어",
+      "name_en": "Holo Sniper Spire",
+      "rarity": "rare",
+      "visual_hook": "elegant black-glass sniper spire with a floating magenta holographic crosshair halo",
+      "signature_palette": "smoked black glass body, silver spine frame, vivid magenta hologram planes, pale lavender lens glow",
+      "ultimate_effect": {
+        "effect_name_ko": "팬텀 익스큐션 그리드",
+        "effect_name_en": "Phantom Execution Grid",
+        "use_case": "ultimate precision shot / execution zone",
+        "blend_hint": "additive",
+        "shape_language": "a magenta holographic crosshair field pierced by one kill line",
+        "color_anchor": "vivid magenta hologram planes, pale lavender beam, white-hot focal point",
+        "prompt": "cyberpunk tower defense VFX asset, Holo Sniper Spire ultimate effect, enormous magenta holographic execution crosshair with layered diamond targeting planes, a pale lavender-white kill beam line slicing through the center, thin geometric scan marks, and a blinding focal point, ultra-precise assassin technology feeling, elegant long-range kill-zone silhouette instead of a round explosion, premium mobile game ultimate skill illustration, effect-only image, single large VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "nano_support_beacon",
+      "name_ko": "나노 서포트 비콘",
+      "name_en": "Nano Support Beacon",
+      "rarity": "rare",
+      "visual_hook": "healing support beacon with blooming mechanical petals and orbiting nano capsules",
+      "signature_palette": "pearl white body, emerald energy chamber, soft cyan helper capsules, brushed titanium frame",
+      "ultimate_effect": {
+        "effect_name_ko": "제네시스 나노 블룸",
+        "effect_name_en": "Genesis Nano Bloom",
+        "use_case": "ultimate support burst / restoration field",
+        "blend_hint": "additive",
+        "shape_language": "a layered healing flower with orbiting capsules and rings",
+        "color_anchor": "emerald core, soft cyan capsule trails, pearl white petal light",
+        "prompt": "cyberpunk tower defense VFX asset, Nano Support Beacon ultimate effect, enormous genesis nano bloom with a vivid emerald healing core, layered pearl-white light petals opening outward, soft cyan capsule orbits, clean restorative ring waves, and tiny helper mote clusters, premium support-class ultimate that feels protective and regenerative rather than explosive, floral radial silhouette with clinical sci-fi clarity, premium mobile game ultimate skill illustration, effect-only image, single large VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "gravity_well_emitter",
+      "name_ko": "그래비티 웰 이미터",
+      "name_en": "Gravity Well Emitter",
+      "rarity": "unique",
+      "visual_hook": "experimental gravity engine holding a black orb inside thick gyroscope rings",
+      "signature_palette": "matte obsidian shell, deep indigo ring structure, vivid violet gravity core, dark titanium pedestal",
+      "ultimate_effect": {
+        "effect_name_ko": "이벤트 호라이즌 컬랩스",
+        "effect_name_en": "Event Horizon Collapse",
+        "use_case": "ultimate crowd control / gravity collapse field",
+        "blend_hint": "additive",
+        "shape_language": "a dark center vortex wrapped by warped gyroscope rings",
+        "color_anchor": "black core, vivid violet gravity halo, deep indigo distortion rings",
+        "prompt": "cyberpunk tower defense VFX asset, Gravity Well Emitter ultimate effect, massive event horizon collapse with a dense black center orb, vivid violet gravity halo, deep indigo gyroscope rings bent inward, stretched light lines being pulled into the core, and sharp curved distortion ripples, heavy inward-collapsing silhouette with clear circular pull, premium mobile game ultimate skill illustration, effect-only image, single large VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "virus_injector",
+      "name_ko": "바이러스 인젝터",
+      "name_en": "Virus Injector",
+      "rarity": "unique",
+      "visual_hook": "asymmetrical sabotage tower with a giant injector arm and toxic code canisters",
+      "signature_palette": "toxic lime canisters, matte black armor, corrupted magenta data glow, dark steel mechanics",
+      "ultimate_effect": {
+        "effect_name_ko": "블랙아웃 플레이그 블룸",
+        "effect_name_en": "Blackout Plague Bloom",
+        "use_case": "ultimate corruption burst / spreading infection wave",
+        "blend_hint": "mixed",
+        "shape_language": "an asymmetrical glitch bloom with code thorns and toxic splash rings",
+        "color_anchor": "toxic lime core, corrupted magenta glitches, black data void gaps",
+        "prompt": "cyberpunk tower defense VFX asset, Virus Injector ultimate effect, giant blackout plague bloom with a toxic lime infection core, corrupted magenta glitch splashes, jagged code thorns, asymmetrical syringe-like spike silhouettes, digital contamination rings, and torn black data void gaps, sabotage-class cyber biohazard energy with a diseased spread pattern, premium mobile game ultimate skill illustration, effect-only image, single large VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, no tower, no weapon source, no character, no environment, no floor, no smoke clouds, no debris chunks, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "prism_laser_array",
+      "name_ko": "프리즘 레이저 어레이",
+      "name_en": "Prism Laser Array",
+      "rarity": "unique",
+      "visual_hook": "spectral laser crown built from crystal petals around a central lens",
+      "signature_palette": "brushed gold structural frame, translucent rainbow prisms, bright white laser chamber, clean ivory supports",
+      "ultimate_effect": {
+        "effect_name_ko": "오로라 프리즘 카타클리즘",
+        "effect_name_en": "Aurora Prism Cataclysm",
+        "use_case": "ultimate beam burst / spectral nova",
+        "blend_hint": "additive",
+        "shape_language": "a crystal starburst crown with multiple spectral lances",
+        "color_anchor": "white prism core, rainbow beam shards, brushed gold light edges",
+        "prompt": "cyberpunk tower defense VFX asset, Prism Laser Array ultimate effect, colossal aurora prism cataclysm with a blazing white prism core, seven spectral laser lances radiating outward, translucent rainbow crystal shards forming a crown, and brushed-gold light edges, majestic starburst silhouette with prismatic geometry instead of smoke, premium mobile game ultimate skill illustration, effect-only image, single large VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "chrono_distortion_core",
+      "name_ko": "크로노 디스토션 코어",
+      "name_en": "Chrono Distortion Core",
+      "rarity": "legendary",
+      "visual_hook": "time-engine tower with an hourglass core and concentric clock rings",
+      "signature_palette": "royal blue enamel body, brushed brass rings, pale gold time chamber, clean white chronal glow",
+      "ultimate_effect": {
+        "effect_name_ko": "타임 락 도미니언",
+        "effect_name_en": "Time Lock Dominion",
+        "use_case": "ultimate control field / time stop burst",
+        "blend_hint": "additive",
+        "shape_language": "layered clock rings with frozen shards around an hourglass core",
+        "color_anchor": "royal blue rings, pale gold time core, clean white chronal glow",
+        "prompt": "cyberpunk tower defense VFX asset, Chrono Distortion Core ultimate effect, vast time lock dominion with layered royal-blue clock rings, a pale gold hourglass core, frozen white chronal halos, broken clock-hand streaks, and suspended shard echoes as if motion has stopped in place, elegant temporal control silhouette with circular rings and a vertical hourglass spine, premium mobile game ultimate skill illustration, effect-only image, single large VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "singularity_cannon",
+      "name_ko": "싱귤래리티 캐논",
+      "name_en": "Singularity Cannon",
+      "rarity": "legendary",
+      "visual_hook": "endgame siege cannon with a huge crescent maw barrel around a red singularity core",
+      "signature_palette": "crimson-black armor plates, molten red singularity chamber, graphite anchor claws, dim ember highlights",
+      "ultimate_effect": {
+        "effect_name_ko": "레드 모 어나이얼레이션",
+        "effect_name_en": "Red Maw Annihilation",
+        "use_case": "ultimate siege shot / annihilation beam",
+        "blend_hint": "mixed",
+        "shape_language": "a red singularity maw firing a forward tearing beam",
+        "color_anchor": "molten red core, crimson-black vortex shell, ember highlights",
+        "prompt": "cyberpunk tower defense VFX asset, Singularity Cannon ultimate effect, gigantic red maw annihilation with a molten red singularity core, a crimson-black crescent vortex shell opened like a predator jaw, a forward-tearing annihilation beam, curved gravitational wake lines, and ember-hot fracture sparks, offensive endgame siege silhouette with a strong forward attack direction, premium mobile game ultimate skill illustration, effect-only image, single large VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, no tower, no weapon source, no character, no environment, no floor, no smoke clouds, no debris chunks, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "aegis_ai_citadel",
+      "name_ko": "이지스 AI 시타델",
+      "name_en": "Aegis AI Citadel",
+      "rarity": "legendary",
+      "visual_hook": "legendary fortress tower with shield wings and a central citadel keep",
+      "signature_palette": "ivory armor walls, shield-blue hardlight wings, royal cyan core, dark steel base structure",
+      "ultimate_effect": {
+        "effect_name_ko": "바스티온 윙 프로토콜",
+        "effect_name_en": "Bastion Wing Protocol",
+        "use_case": "ultimate defense burst / barrier retaliation field",
+        "blend_hint": "additive",
+        "shape_language": "a winged barrier bloom with shield panels and retaliation lances",
+        "color_anchor": "royal cyan core, shield-blue wings, ivory light panels",
+        "prompt": "cyberpunk tower defense VFX asset, Aegis AI Citadel ultimate effect, monumental bastion wing protocol with a royal-cyan core, immense shield-blue hardlight wings opened wide, layered ivory barrier panels, hex defense fields, and disciplined retaliatory lance lines dropping from the center, guardian-fortress silhouette that feels holy, secure, and military rather than chaotic, premium mobile game ultimate skill illustration, effect-only image, single large VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      }
+    }
+  ]
+}

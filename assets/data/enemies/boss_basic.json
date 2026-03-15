@@ -1,0 +1,8 @@
+{
+  "id": "boss_basic",
+  "nameKey": "enemy.boss.name",
+  "archetype": "boss",
+  "hp": 500,
+  "speed": 25,
+  "rewardBattleGold": 50
+}

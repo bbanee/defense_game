@@ -1,0 +1,35 @@
+﻿{
+    "id":  "gravity_basic",
+    "nameKey":  "tower.gravity.name",
+    "descKey":  "tower.gravity.desc",
+    "rarity":  "unique",
+    "baseDamage":  24,
+    "fireRate":  0.85,
+    "range":  118,
+    "attackType":  "projectile",
+    "projectileSpeed":  540,
+    "projectileSize":  24,
+    "buildCost":  180,
+    "upgradeCostBase":  150,
+    "upgradeCostMultiplier":  0.75,
+    "sellRefundRate":  0.75,
+    "unlockShards":  40,
+    "levelUpShardsBase":  23,
+    "levelUpShardsMultiplier":  1.39,
+    "ultimateChance":  0.11,
+    "ultimateDamageMultiplier":  2.35,
+    "effects":  [
+                    {
+                        "type":  "pull",
+                        "value":  1,
+                        "chance":  0.3,
+                        "atLevel":  1
+                    },
+                    {
+                        "type":  "pull",
+                        "value":  1,
+                        "chance":  0.48,
+                        "atLevel":  7
+                    }
+                ]
+}

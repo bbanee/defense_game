@@ -1,0 +1,8 @@
+{
+  "id": "brute_basic",
+  "nameKey": "enemy.brute.name",
+  "archetype": "tank",
+  "hp": 120,
+  "speed": 35,
+  "rewardBattleGold": 12
+}

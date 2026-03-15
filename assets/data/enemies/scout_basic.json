@@ -1,0 +1,8 @@
+{
+  "id": "scout_basic",
+  "nameKey": "enemy.scout.name",
+  "archetype": "fast",
+  "hp": 40,
+  "speed": 70,
+  "rewardBattleGold": 6
+}

@@ -1,0 +1,36 @@
+{
+  "id": "wave_test_u",
+  "waveClearReward": 0,
+  "spawns": [
+    {
+      "enemyId": "grunt_basic",
+      "at": 0.5,
+      "count": 3,
+      "intervalMs": 1000
+    },
+    {
+      "enemyId": "sprinter_basic",
+      "at": 4.0,
+      "count": 2,
+      "intervalMs": 900
+    },
+    {
+      "enemyId": "brute_basic",
+      "at": 7.0,
+      "count": 2,
+      "intervalMs": 1200
+    },
+    {
+      "enemyId": "tank_basic",
+      "at": 10.0,
+      "count": 1,
+      "intervalMs": 1000
+    },
+    {
+      "enemyId": "scout_basic",
+      "at": 12.0,
+      "count": 2,
+      "intervalMs": 900
+    }
+  ]
+}

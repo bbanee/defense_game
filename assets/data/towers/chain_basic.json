@@ -1,0 +1,38 @@
+﻿{
+    "id":  "chain_basic",
+    "nameKey":  "tower.chain.name",
+    "descKey":  "tower.chain.desc",
+    "rarity":  "rare",
+    "baseDamage":  12,
+    "fireRate":  1.3,
+    "range":  98,
+    "attackType":  "hitscan",
+    "projectileSpeed":  0,
+    "projectileSize":  0,
+    "buildCost":  120,
+    "upgradeCostBase":  100,
+    "upgradeCostMultiplier":  0.65,
+    "sellRefundRate":  0.75,
+    "unlockShards":  20,
+    "levelUpShardsBase":  15,
+    "levelUpShardsMultiplier":  1.32,
+    "ultimateChance":  0.09,
+    "ultimateDamageMultiplier":  2.2,
+    "effects":  [
+                    {
+                        "type":  "chain_arc",
+                        "value":  0.42,
+                        "maxStack":  1,
+                        "durationSec":  1.5,
+                        "atLevel":  1
+                    },
+                    {
+                        "type":  "chain_arc",
+                        "value":  0.6,
+                        "maxStack":  2,
+                        "durationSec":  1.9,
+                        "chance":  0.45,
+                        "atLevel":  7
+                    }
+                ]
+}

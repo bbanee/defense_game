@@ -1,0 +1,8 @@
+{
+  "id": "armored_basic",
+  "nameKey": "enemy.armored.name",
+  "archetype": "armored",
+  "hp": 180,
+  "speed": 30,
+  "rewardBattleGold": 16
+}

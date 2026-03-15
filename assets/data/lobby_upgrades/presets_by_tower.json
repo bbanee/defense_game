@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "towers": {
+    "cannon_basic": {
+      "identity": { "key": "effect.chain_arc.value", "perLevel": 0.015, "cap": 0.15 },
+      "operations": { "key": "stat.range_pct", "perLevel": 0.006, "cap": 0.09 },
+      "synergy": { "key": "vs.vulnerable_damage_pct", "perLevel": 0.012, "cap": 0.12 }
+    },
+    "rapid_basic": {
+      "identity": { "key": "effect.vulnerability.value", "perLevel": 0.006, "cap": 0.09 },
+      "operations": { "key": "stat.fire_rate_pct", "perLevel": 0.01, "cap": 0.15 },
+      "synergy": { "key": "on_mark_refresh_damage_pct", "perLevel": 0.01, "cap": 0.1 }
+    },
+    "shotgun_basic": {
+      "identity": { "key": "effect.slow.value", "perLevel": 0.008, "cap": 0.12 },
+      "operations": { "key": "stat.damage_pct", "perLevel": 0.01, "cap": 0.12 },
+      "synergy": { "key": "vs.slowed_damage_pct", "perLevel": 0.012, "cap": 0.12 }
+    },
+    "support_basic": {
+      "identity": { "key": "effect.vulnerability.duration_pct", "perLevel": 0.02, "cap": 0.25 },
+      "operations": { "key": "build.cost_reduction_pct", "perLevel": 0.01, "cap": 0.15 },
+      "synergy": { "key": "ally_damage_aura_pct", "perLevel": 0.006, "cap": 0.06 }
+    },
+    "mortar_basic": {
+      "identity": { "key": "effect.slow.duration_pct", "perLevel": 0.015, "cap": 0.2 },
+      "operations": { "key": "stat.range_pct", "perLevel": 0.007, "cap": 0.1 },
+      "synergy": { "key": "on_heavy_hit_vulnerable_chance", "perLevel": 0.008, "cap": 0.08 }
+    },
+    "chain_basic": {
+      "identity": { "key": "effect.chain_arc.max_targets", "perLevel": 0.08, "cap": 1.0 },
+      "operations": { "key": "stat.fire_rate_pct", "perLevel": 0.008, "cap": 0.12 },
+      "synergy": { "key": "vs.chained_damage_pct", "perLevel": 0.01, "cap": 0.1 }
+    },
+    "drone_basic": {
+      "identity": { "key": "effect.attack_weaken.value", "perLevel": 0.01, "cap": 0.15 },
+      "operations": { "key": "stat.projectile_speed_pct", "perLevel": 0.015, "cap": 0.2 },
+      "synergy": { "key": "core_damage_mitigation_bonus", "perLevel": 0.006, "cap": 0.06 }
+    },
+    "frost_basic": {
+      "identity": { "key": "effect.freeze.duration_pct", "perLevel": 0.02, "cap": 0.28 },
+      "operations": { "key": "stat.range_pct", "perLevel": 0.006, "cap": 0.09 },
+      "synergy": { "key": "vs.frozen_damage_pct", "perLevel": 0.015, "cap": 0.15 }
+    },
+    "infection_basic": {
+      "identity": { "key": "effect.dot.value_pct", "perLevel": 0.02, "cap": 0.3 },
+      "operations": { "key": "stat.fire_rate_pct", "perLevel": 0.008, "cap": 0.12 },
+      "synergy": { "key": "dot_spread_chance", "perLevel": 0.01, "cap": 0.1 }
+    },
+    "laser_basic": {
+      "identity": { "key": "effect.dot.duration_pct", "perLevel": 0.018, "cap": 0.25 },
+      "operations": { "key": "stat.damage_pct", "perLevel": 0.01, "cap": 0.12 },
+      "synergy": { "key": "vs.dot_target_damage_pct", "perLevel": 0.012, "cap": 0.12 }
+    },
+    "gravity_basic": {
+      "identity": { "key": "effect.pull.chance_flat", "perLevel": 0.01, "cap": 0.15 },
+      "operations": { "key": "stat.range_pct", "perLevel": 0.007, "cap": 0.1 },
+      "synergy": { "key": "on_pull_vulnerable_apply", "perLevel": 0.01, "cap": 0.1 }
+    },
+    "sniper_basic": {
+      "identity": { "key": "effect.vulnerability.value", "perLevel": 0.01, "cap": 0.15 },
+      "operations": { "key": "stat.damage_pct", "perLevel": 0.012, "cap": 0.18 },
+      "synergy": { "key": "critical_vs_marked_pct", "perLevel": 0.01, "cap": 0.1 }
+    },
+    "missile_basic": {
+      "identity": { "key": "effect.vulnerability.duration_pct", "perLevel": 0.02, "cap": 0.3 },
+      "operations": { "key": "stat.projectile_speed_pct", "perLevel": 0.012, "cap": 0.18 },
+      "synergy": { "key": "splash_vs_marked_pct", "perLevel": 0.012, "cap": 0.12 }
+    },
+    "chrono_basic": {
+      "identity": { "key": "effect.time_dilate.value", "perLevel": 0.01, "cap": 0.15 },
+      "operations": { "key": "stat.fire_rate_pct", "perLevel": 0.01, "cap": 0.15 },
+      "synergy": { "key": "vs.time_dilated_damage_pct", "perLevel": 0.012, "cap": 0.12 }
+    },
+    "singularity_basic": {
+      "identity": { "key": "effect.max_hp_burst.value", "perLevel": 0.004, "cap": 0.06 },
+      "operations": { "key": "stat.damage_pct", "perLevel": 0.012, "cap": 0.18 },
+      "synergy": { "key": "execute_threshold_bonus", "perLevel": 0.004, "cap": 0.04 }
+    }
+  }
+}

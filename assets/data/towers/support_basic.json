@@ -1,0 +1,36 @@
+﻿{
+    "id":  "support_basic",
+    "nameKey":  "tower.support.name",
+    "descKey":  "tower.support.desc",
+    "rarity":  "common",
+    "baseDamage":  7,
+    "fireRate":  1.35,
+    "range":  110,
+    "attackType":  "hitscan",
+    "projectileSpeed":  0,
+    "projectileSize":  0,
+    "buildCost":  80,
+    "upgradeCostBase":  70,
+    "upgradeCostMultiplier":  0.6,
+    "sellRefundRate":  0.75,
+    "unlockShards":  0,
+    "levelUpShardsBase":  12,
+    "levelUpShardsMultiplier":  1.29,
+    "ultimateChance":  0.07,
+    "ultimateDamageMultiplier":  1.95,
+    "effects":  [
+                    {
+                        "type":  "vulnerability",
+                        "value":  0.14,
+                        "durationSec":  3.0,
+                        "atLevel":  1
+                    },
+                    {
+                        "type":  "vulnerability",
+                        "value":  0.24,
+                        "durationSec":  3.2,
+                        "chance":  0.35,
+                        "atLevel":  7
+                    }
+                ]
+}

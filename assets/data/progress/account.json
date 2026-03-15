@@ -1,0 +1,40 @@
+﻿{
+  "accountGold": 0,
+  "diamonds": 1000,
+  "energy": 20,
+  "maxEnergy": 20,
+  "lastEnergyAtIso": "",
+  "shardDrawTickets": 20,
+  "shardDrawDailyDate": "",
+  "shardDrawSingleDailyCount": 0,
+  "shardDrawTenDailyCount": 0,
+  "core": {
+    "level": 1,
+    "hp": 3000,
+    "shield": 400,
+    "defenseRate": 0.1,
+    "hpLevel": 1,
+    "shieldLevel": 1,
+    "defenseLevel": 1
+  },
+  "towers": [
+    {"towerId": "cannon_basic", "level": 1, "shards": 0, "unlocked": true},
+    {"towerId": "rapid_basic", "level": 1, "shards": 0, "unlocked": true},
+    {"towerId": "frost_basic", "level": 1, "shards": 0, "unlocked": true},
+    {"towerId": "shotgun_basic", "level": 1, "shards": 0, "unlocked": false},
+    {"towerId": "drone_basic", "level": 1, "shards": 0, "unlocked": false},
+
+    {"towerId": "chain_basic", "level": 1, "shards": 0, "unlocked": false},
+    {"towerId": "missile_basic", "level": 1, "shards": 0, "unlocked": false},
+    {"towerId": "support_basic", "level": 1, "shards": 0, "unlocked": false},
+    {"towerId": "laser_basic", "level": 1, "shards": 0, "unlocked": false},
+
+    {"towerId": "sniper_basic", "level": 1, "shards": 0, "unlocked": false},
+    {"towerId": "gravity_basic", "level": 1, "shards": 0, "unlocked": false},
+    {"towerId": "infection_basic", "level": 1, "shards": 0, "unlocked": false},
+
+    {"towerId": "chrono_basic", "level": 1, "shards": 0, "unlocked": false},
+    {"towerId": "singularity_basic", "level": 1, "shards": 0, "unlocked": false},
+    {"towerId": "mortar_basic", "level": 1, "shards": 0, "unlocked": false}
+  ]
+}

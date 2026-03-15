@@ -1,0 +1,11 @@
+﻿{
+  "id": "nightmare",
+  "nameKey": "difficulty.nightmare",
+  "hpMultiplier": 2.35,
+  "speedMultiplier": 1.2,
+  "rewardMultiplier": 1.0,
+  "startingBattleGold": 360,
+  "buildCostMultiplier": 1.85,
+  "towerUpgradeCostMultiplier": 2.3,
+  "sellRefundMultiplier": 0.35
+}

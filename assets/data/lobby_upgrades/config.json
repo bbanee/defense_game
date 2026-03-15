@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "maxTrackLevel": 15,
+  "currency": "tower_shard",
+  "spendPolicy": "per_tower_per_track",
+  "costCurve": {
+    "base": 10,
+    "growth": 1.22,
+    "rarityMultiplier": {
+      "common": 1.0,
+      "rare": 1.15,
+      "unique": 1.35,
+      "legendary": 1.6
+    }
+  },
+  "tracks": [
+    {
+      "id": "identity",
+      "label": "identity",
+      "weight": 0.5,
+      "description": "Strengthens each tower's core fantasy."
+    },
+    {
+      "id": "operations",
+      "label": "operations",
+      "weight": 0.3,
+      "description": "Improves economy/tempo convenience."
+    },
+    {
+      "id": "synergy",
+      "label": "synergy",
+      "weight": 0.2,
+      "description": "Adds build-combo value."
+    }
+  ],
+  "modifierCaps": {
+    "damage_pct": 0.35,
+    "fire_rate_pct": 0.35,
+    "range_pct": 0.2,
+    "status_duration_pct": 0.4,
+    "status_chance_flat": 0.2,
+    "vulnerability_bonus_flat": 0.2,
+    "dot_dps_pct": 0.5,
+    "cost_reduction_pct": 0.2,
+    "sell_refund_bonus_flat": 0.1
+  }
+}

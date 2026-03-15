@@ -1,0 +1,19 @@
+{
+  "id": "test_u_stage",
+  "mapId": "map_u_test",
+  "modeId": "test_sandbox",
+  "energyCost": 0,
+  "reward": {
+    "accountGold": 0,
+    "towerShard": 0
+  },
+  "allowedDifficulties": [
+    "easy",
+    "normal",
+    "hard",
+    "nightmare"
+  ],
+  "waveIds": [
+    "wave_test_u"
+  ]
+}

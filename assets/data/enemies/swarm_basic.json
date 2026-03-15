@@ -1,0 +1,8 @@
+{
+  "id": "swarm_basic",
+  "nameKey": "enemy.swarm.name",
+  "archetype": "swarm",
+  "hp": 30,
+  "speed": 60,
+  "rewardBattleGold": 5
+}

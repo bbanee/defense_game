@@ -1,0 +1,66 @@
+{
+  "default": {
+    "shockwave": { "radius": 1.6, "duration": 0.35, "width": 6, "color": "#8BE9FF" },
+    "glow": { "color": "#8BE9FF", "scale": 1.4, "opacity": 0.55 }
+  },
+  "cannon_basic": {
+    "shockwave": { "radius": 1.9, "duration": 0.4, "width": 7, "color": "#7DD3FC" },
+    "glow": { "color": "#7DD3FC", "scale": 1.6, "opacity": 0.6 }
+  },
+  "rapid_basic": {
+    "shockwave": { "radius": 1.4, "duration": 0.28, "width": 4, "color": "#A7F3D0" },
+    "glow": { "color": "#34D399", "scale": 1.25, "opacity": 0.5 }
+  },
+  "sniper_basic": {
+    "shockwave": { "radius": 2.3, "duration": 0.45, "width": 5, "color": "#FDE68A" },
+    "glow": { "color": "#F59E0B", "scale": 1.8, "opacity": 0.6 }
+  },
+  "laser_basic": {
+    "shockwave": { "radius": 1.7, "duration": 0.32, "width": 6, "color": "#FCA5A5" },
+    "glow": { "color": "#FB7185", "scale": 1.5, "opacity": 0.6 }
+  },
+  "chain_basic": {
+    "shockwave": { "radius": 1.6, "duration": 0.3, "width": 6, "color": "#A5B4FC" },
+    "glow": { "color": "#818CF8", "scale": 1.45, "opacity": 0.55 }
+  },
+  "missile_basic": {
+    "shockwave": { "radius": 2.1, "duration": 0.45, "width": 7, "color": "#FDBA74" },
+    "glow": { "color": "#FB923C", "scale": 1.7, "opacity": 0.65 }
+  },
+  "mortar_basic": {
+    "shockwave": { "radius": 2.4, "duration": 0.5, "width": 8, "color": "#FCA5A5" },
+    "glow": { "color": "#F87171", "scale": 1.9, "opacity": 0.7 }
+  },
+  "shotgun_basic": {
+    "shockwave": { "radius": 1.5, "duration": 0.3, "width": 6, "color": "#C7D2FE" },
+    "glow": { "color": "#A5B4FC", "scale": 1.3, "opacity": 0.55 }
+  },
+  "frost_basic": {
+    "shockwave": { "radius": 1.7, "duration": 0.36, "width": 6, "color": "#BAE6FD" },
+    "glow": { "color": "#7DD3FC", "scale": 1.5, "opacity": 0.6 }
+  },
+  "gravity_basic": {
+    "shockwave": { "radius": 2.0, "duration": 0.42, "width": 7, "color": "#C4B5FD" },
+    "glow": { "color": "#A78BFA", "scale": 1.65, "opacity": 0.6 }
+  },
+  "chrono_basic": {
+    "shockwave": { "radius": 1.8, "duration": 0.4, "width": 6, "color": "#99F6E4" },
+    "glow": { "color": "#2DD4BF", "scale": 1.55, "opacity": 0.6 }
+  },
+  "drone_basic": {
+    "shockwave": { "radius": 1.5, "duration": 0.3, "width": 5, "color": "#F9A8D4" },
+    "glow": { "color": "#F472B6", "scale": 1.35, "opacity": 0.55 }
+  },
+  "support_basic": {
+    "shockwave": { "radius": 1.6, "duration": 0.32, "width": 6, "color": "#BBF7D0" },
+    "glow": { "color": "#4ADE80", "scale": 1.4, "opacity": 0.55 }
+  },
+  "infection_basic": {
+    "shockwave": { "radius": 1.7, "duration": 0.36, "width": 6, "color": "#86EFAC" },
+    "glow": { "color": "#22C55E", "scale": 1.5, "opacity": 0.6 }
+  },
+  "singularity_basic": {
+    "shockwave": { "radius": 2.5, "duration": 0.55, "width": 8, "color": "#E9D5FF" },
+    "glow": { "color": "#C084FC", "scale": 2.0, "opacity": 0.7 }
+  }
+}

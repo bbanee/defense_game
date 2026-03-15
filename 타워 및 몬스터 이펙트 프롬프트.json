@@ -1,0 +1,559 @@
+{
+  "project": "Project NEON BASTION",
+  "prompt_version": "v1_attack_effects_chatgpt_postprocess",
+  "workflow": "Generate single VFX assets in ChatGPT, then remove background or use additive/screen blending in post-process.",
+  "goal": "Distinct and gameplay-readable attack effect prompts for towers and enemies in a cyberpunk tower defense game.",
+  "render_note": "Use a pure black background for clearer glow separation, easier post-processing, and additive-friendly VFX extraction.",
+  "retry_note": "If the result includes a tower, monster, weapon, or scenery, retry with this sentence appended: remove all units and scenery, keep only one isolated VFX element on a pure black background, make the effect shape cleaner and more readable.",
+  "effect_style_guide": "cyberpunk tower defense VFX asset, premium mobile game special effect illustration, effect-only image, single VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no tower, no monster, no weapon source, no environment, no floor, no smoke clouds, no debris chunks, no text, no logo, no watermark",
+  "towers": [
+    {
+      "id": "pulse_turret",
+      "name_ko": "펄스 터렛",
+      "name_en": "Pulse Turret",
+      "rarity": "common",
+      "visual_hook": "compact dual-barrel pulse gun with a round reactor chest and a low hex base",
+      "signature_palette": "saturated cyan reactor, matte navy armor panels, warm copper conductive rings, light gray support frame",
+      "effects": [
+        {
+          "effect_id": "shot",
+          "effect_name_ko": "펄스 볼트",
+          "effect_name_en": "Pulse Bolt",
+          "use_case": "projectile / shot travel",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Pulse Turret shot effect, compact cyan electromagnetic pulse bolt with an oval plasma core, warm copper conductive ring shock wrapped around the bolt, crisp cyan streak trail, tiny hex data sparks, balanced municipal defense technology look, high contrast luminous energy, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no turret, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        },
+        {
+          "effect_id": "impact",
+          "effect_name_ko": "펄스 링 충격",
+          "effect_name_en": "Pulse Ring Impact",
+          "use_case": "impact / hit burst",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Pulse Turret impact effect, circular cyan pulse ring impact with a bright white-cyan center, expanding copper spark halo, small hex shock ripples, clean sci-fi hit burst, readable radial silhouette, high contrast luminous energy, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no turret, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        }
+      ]
+    },
+    {
+      "id": "railguard_battery",
+      "name_ko": "레일가드 포대",
+      "name_en": "Railguard Battery",
+      "rarity": "common",
+      "visual_hook": "precision anti-armor rail platform with an extra-long barrel and open accelerator spine",
+      "signature_palette": "ceramic white outer shell, graphite rail spine, burnt orange magnetic coils, dark steel joints",
+      "effects": [
+        {
+          "effect_id": "shot",
+          "effect_name_ko": "레일 트레이서",
+          "effect_name_en": "Rail Tracer",
+          "use_case": "projectile / piercing shot",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Railguard Battery shot effect, razor-thin orange-white rail tracer with an ultra-bright needle core, long straight magnetic streak, tiny burnt-orange coil sparks peeling off the sides, precision anti-armor sniper energy, extremely fast and disciplined silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no turret, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        },
+        {
+          "effect_id": "impact",
+          "effect_name_ko": "관통 충격",
+          "effect_name_en": "Pierce Impact",
+          "use_case": "impact / pierce hit",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Railguard Battery impact effect, sharp orange-white armor-piercing impact burst with a narrow linear core, metal-shearing spark fan, long crack-like energy split, precise sniper hit effect, slender high-velocity silhouette instead of a round explosion, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no turret, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        }
+      ]
+    },
+    {
+      "id": "scatter_blaster",
+      "name_ko": "스캐터 블래스터",
+      "name_en": "Scatter Blaster",
+      "rarity": "common",
+      "visual_hook": "short-range breacher turret with a bulldog profile and a huge drum muzzle",
+      "signature_palette": "matte black shell, hazard yellow armor plates, glowing orange blast chamber, raw steel recoil parts",
+      "effects": [
+        {
+          "effect_id": "shot",
+          "effect_name_ko": "스캐터 콘 블래스트",
+          "effect_name_en": "Scatter Cone Blast",
+          "use_case": "muzzle burst / short-range spread",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Scatter Blaster shot effect, brutal orange plasma cone blast with a chunky white-hot muzzle core, many short ember pellets spreading outward, compact industrial breacher energy, wide close-range spread silhouette, black-and-yellow urban siege flavor, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no turret, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        },
+        {
+          "effect_id": "impact",
+          "effect_name_ko": "스캐터 임팩트 클러스터",
+          "effect_name_en": "Scatter Impact Cluster",
+          "use_case": "impact / multi-hit burst",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Scatter Blaster impact effect, broad orange multi-hit impact cluster with several overlapping hot bursts, raw steel spark fragments, semicircular close-range blast silhouette, aggressive breacher hit effect with heavy stopping power, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no turret, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        }
+      ]
+    },
+    {
+      "id": "frost_relay",
+      "name_ko": "프로스트 릴레이",
+      "name_en": "Frost Relay",
+      "rarity": "common",
+      "visual_hook": "cryo control obelisk with a floating freeze ring and vertical crystal fins",
+      "signature_palette": "porcelain white body, ice blue energy core, translucent cyan crystal fins, frost-silver mechanical joints",
+      "effects": [
+        {
+          "effect_id": "shot",
+          "effect_name_ko": "크라이오 오브",
+          "effect_name_en": "Cryo Orb",
+          "use_case": "projectile / control shot",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Frost Relay shot effect, ice-blue cryo orb with a pale white core, thin rotating freeze halo, translucent cyan crystal flecks, elegant cold-energy control projectile, clean circular silhouette with minimal mist, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no tower, no weapon source, no character, no environment, no floor, no smoke clouds, no debris, no text, no logo, no watermark"
+        },
+        {
+          "effect_id": "impact",
+          "effect_name_ko": "프로스트 노바",
+          "effect_name_en": "Frost Nova",
+          "use_case": "impact / freeze field",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Frost Relay impact effect, radial ice crystal nova with a bright cyan center, expanding freeze ring, sharp translucent crystal spikes, pale snowflake sigil geometry, elegant crowd-control hit effect, readable circular silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no tower, no weapon source, no character, no environment, no floor, no smoke clouds, no debris, no text, no logo, no watermark"
+        }
+      ]
+    },
+    {
+      "id": "drone_dock",
+      "name_ko": "드론 도크",
+      "name_en": "Drone Dock",
+      "rarity": "common",
+      "visual_hook": "flat circular drone launch pad with two hornet-like attack drones orbiting above it",
+      "signature_palette": "teal runway panels, off-white housing, black safety stripes, electric blue thrusters",
+      "effects": [
+        {
+          "effect_id": "shot",
+          "effect_name_ko": "드론 플라즈마 다트",
+          "effect_name_en": "Drone Plasma Dart",
+          "use_case": "projectile / drone shot",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Drone Dock shot effect, agile electric-blue plasma dart with a thin teal contrail, hornet-like flight energy, compact fast projectile silhouette, clean sustained-fire support weapon feel, no drone body, only the projectile effect, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no turret, no drone platform, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        },
+        {
+          "effect_id": "impact",
+          "effect_name_ko": "드론 스트라이크 버스트",
+          "effect_name_en": "Drone Strike Burst",
+          "use_case": "impact / drone attack burst",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Drone Dock impact effect, precise blue-white strike burst with teal rotor-like slash streaks, compact cross-shaped impact silhouette, fast coordinated drone attack energy, premium mobile game hit effect, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no turret, no drone platform, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        }
+      ]
+    },
+    {
+      "id": "tesla_arc_node",
+      "name_ko": "테슬라 아크 노드",
+      "name_en": "Tesla Arc Node",
+      "rarity": "rare",
+      "visual_hook": "electrical coil cage around a bright spherical plasma core",
+      "signature_palette": "dark copper frame, violet ceramic insulators, electric blue arcs, charcoal base",
+      "effects": [
+        {
+          "effect_id": "shot",
+          "effect_name_ko": "체인 라이트닝 아크",
+          "effect_name_en": "Chain Lightning Arc",
+          "use_case": "beam / chain strike",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Tesla Arc Node shot effect, branching electric-blue lightning arc cluster with a bright white plasma heart, violet insulator sparks, chained zigzag energy shape, unstable high-voltage silhouette, dramatic but readable sci-fi electricity, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        },
+        {
+          "effect_id": "impact",
+          "effect_name_ko": "오버로드 쇼크 버스트",
+          "effect_name_en": "Overload Shock Burst",
+          "use_case": "impact / electrical burst",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Tesla Arc Node impact effect, spherical blue plasma pop with radial lightning forks, bright white core, violet electrical ring, overloaded shock burst silhouette, area-chain lightning aftermath effect, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        }
+      ]
+    },
+    {
+      "id": "missile_matrix",
+      "name_ko": "미사일 매트릭스",
+      "name_en": "Missile Matrix",
+      "rarity": "rare",
+      "visual_hook": "boxy vertical missile battery made of stacked launch cells",
+      "signature_palette": "olive drab launch boxes, dark graphite chassis, bright orange warning panels, pale steel hinges",
+      "effects": [
+        {
+          "effect_id": "shot",
+          "effect_name_ko": "마이크로 미사일 트레일",
+          "effect_name_en": "Micro Missile Trail",
+          "use_case": "projectile / missile launch",
+          "blend_hint": "mixed",
+          "prompt": "cyberpunk tower defense VFX asset, Missile Matrix shot effect, compact guided mini missile with an olive shell silhouette, bright orange exhaust flare, clean rocket trail with a pale hot core, military anti-air attack feel, readable projectile profile, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no launcher, no character, no environment, no floor, no smoke clouds, no debris, no text, no logo, no watermark"
+        },
+        {
+          "effect_id": "impact",
+          "effect_name_ko": "오렌지 블라스트 익스플로전",
+          "effect_name_en": "Orange Blast Explosion",
+          "use_case": "impact / explosive burst",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Missile Matrix impact effect, layered orange explosion burst with a white-hot center, compact blast ring, sharp hot fragment streaks, military demolition energy, not a soft fireball, readable anti-armor detonation silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no launcher, no character, no environment, no floor, no smoke clouds, no debris chunks, no text, no logo, no watermark"
+        }
+      ]
+    },
+    {
+      "id": "holo_sniper_spire",
+      "name_ko": "홀로 스나이퍼 스파이어",
+      "name_en": "Holo Sniper Spire",
+      "rarity": "rare",
+      "visual_hook": "elegant black-glass sniper spire with a floating magenta holographic crosshair halo",
+      "signature_palette": "smoked black glass body, silver spine frame, vivid magenta hologram planes, pale lavender lens glow",
+      "effects": [
+        {
+          "effect_id": "shot",
+          "effect_name_ko": "홀로 스나이프 빔",
+          "effect_name_en": "Holo Snipe Beam",
+          "use_case": "beam / precision shot",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Holo Sniper Spire shot effect, razor-thin magenta beam with a pale lavender core, floating holographic crosshair shards aligned along the beam, elegant high-precision sniper energy, refined black-glass AI defense feel, extremely clean linear silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        },
+        {
+          "effect_id": "impact",
+          "effect_name_ko": "크로스헤어 임팩트 블룸",
+          "effect_name_en": "Crosshair Impact Bloom",
+          "use_case": "impact / precision hit",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Holo Sniper Spire impact effect, precise magenta impact bloom stamped with a floating crosshair ring, crystalline lavender flare, thin hologram planes, sniper headshot-style hit effect, elegant and surgical rather than explosive, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        }
+      ]
+    },
+    {
+      "id": "nano_support_beacon",
+      "name_ko": "나노 서포트 비콘",
+      "name_en": "Nano Support Beacon",
+      "rarity": "rare",
+      "visual_hook": "healing support beacon with blooming mechanical petals and orbiting nano capsules",
+      "signature_palette": "pearl white body, emerald energy chamber, soft cyan helper capsules, brushed titanium frame",
+      "effects": [
+        {
+          "effect_id": "shot",
+          "effect_name_ko": "나노 리페어 스트림",
+          "effect_name_en": "Nano Repair Stream",
+          "use_case": "support / repair beam",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Nano Support Beacon support effect, emerald nano repair beam ribbon with a soft white center, orbiting cyan nano capsules, gentle healing code particles, premium supportive sci-fi utility effect, clean flowing silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no tower, no weapon source, no ally body, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        },
+        {
+          "effect_id": "impact",
+          "effect_name_ko": "나노 블룸 펄스",
+          "effect_name_en": "Nano Bloom Pulse",
+          "use_case": "support / pulse field",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Nano Support Beacon support field effect, circular emerald healing pulse with a soft white-cyan bloom core, nano swarm spirals, petal-like energy ring, restorative sanctuary feel, elegant support aura silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no tower, no weapon source, no ally body, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        }
+      ]
+    },
+    {
+      "id": "gravity_well_emitter",
+      "name_ko": "그래비티 웰 이미터",
+      "name_en": "Gravity Well Emitter",
+      "rarity": "unique",
+      "visual_hook": "experimental gravity engine holding a black orb inside thick gyroscope rings",
+      "signature_palette": "matte obsidian shell, deep indigo ring structure, vivid violet gravity core, dark titanium pedestal",
+      "effects": [
+        {
+          "effect_id": "shot",
+          "effect_name_ko": "그래비티 오브",
+          "effect_name_en": "Gravity Orb",
+          "use_case": "projectile / gravity shot",
+          "blend_hint": "mixed",
+          "prompt": "cyberpunk tower defense VFX asset, Gravity Well Emitter shot effect, vivid violet gravity orb with a dark compressed center, indigo warped-light ring, curved lens distortion streaks, unstable experimental gravity projectile, elegant but dangerous singular silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        },
+        {
+          "effect_id": "impact",
+          "effect_name_ko": "임플로전 웰",
+          "effect_name_en": "Implosion Well",
+          "use_case": "impact / crowd-control field",
+          "blend_hint": "mixed",
+          "prompt": "cyberpunk tower defense VFX asset, Gravity Well Emitter impact effect, dark violet implosion well with an inward-pulling black core, concentric distortion rings collapsing toward the center, crushed light streaks, strong gravitational crowd-control field, readable circular sink silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        }
+      ]
+    },
+    {
+      "id": "virus_injector",
+      "name_ko": "바이러스 인젝터",
+      "name_en": "Virus Injector",
+      "rarity": "unique",
+      "visual_hook": "asymmetrical sabotage tower with a giant injector arm and toxic code canisters",
+      "signature_palette": "toxic lime canisters, matte black armor, corrupted magenta data glow, dark steel mechanics",
+      "effects": [
+        {
+          "effect_id": "shot",
+          "effect_name_ko": "바이러스 다트",
+          "effect_name_en": "Virus Dart",
+          "use_case": "projectile / corruption shot",
+          "blend_hint": "mixed",
+          "prompt": "cyberpunk tower defense VFX asset, Virus Injector shot effect, toxic lime syringe-like code dart with a sharp asymmetrical needle silhouette, corrupted magenta glitch trail, biotechnical sabotage energy, dangerous and dirty cyberpunk projectile, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no tower, no injector arm, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        },
+        {
+          "effect_id": "impact",
+          "effect_name_ko": "코럽션 버스트",
+          "effect_name_en": "Corruption Burst",
+          "use_case": "impact / damage-over-time field",
+          "blend_hint": "mixed",
+          "prompt": "cyberpunk tower defense VFX asset, Virus Injector impact effect, toxic lime bio-digital splash with a corrupted magenta center, virus glyph fragments, spreading contamination ring, sabotage damage-over-time hit effect, asymmetrical messy silhouette but still readable, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no tower, no injector arm, no character, no environment, no floor, no smoke clouds, no debris, no text, no logo, no watermark"
+        }
+      ]
+    },
+    {
+      "id": "prism_laser_array",
+      "name_ko": "프리즘 레이저 어레이",
+      "name_en": "Prism Laser Array",
+      "rarity": "unique",
+      "visual_hook": "spectral laser crown built from crystal petals around a central lens",
+      "signature_palette": "brushed gold structural frame, translucent rainbow prisms, bright white laser chamber, clean ivory supports",
+      "effects": [
+        {
+          "effect_id": "shot",
+          "effect_name_ko": "스펙트럼 프리즘 빔",
+          "effect_name_en": "Spectrum Prism Beam",
+          "use_case": "beam / laser shot",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Prism Laser Array shot effect, clean rainbow prism beam with a bright white center line, separated spectrum edges, tiny refracted crystal shard highlights, elegant high-tier spectral laser energy, premium and refined silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        },
+        {
+          "effect_id": "impact",
+          "effect_name_ko": "프리즘 스타버스트",
+          "effect_name_en": "Prism Starburst",
+          "use_case": "impact / laser hit",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Prism Laser Array impact effect, multicolor crystalline starburst with a white-hot center, refracted prism shard flares, elegant spectral hit bloom, high-tier laser impact that feels premium and precise, readable star-shaped silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        }
+      ]
+    },
+    {
+      "id": "chrono_distortion_core",
+      "name_ko": "크로노 디스토션 코어",
+      "name_en": "Chrono Distortion Core",
+      "rarity": "legendary",
+      "visual_hook": "time-engine tower with an hourglass core and concentric clock rings",
+      "signature_palette": "royal blue enamel body, brushed brass rings, pale gold time chamber, clean white chronal glow",
+      "effects": [
+        {
+          "effect_id": "shot",
+          "effect_name_ko": "크로널 펄스 스피어",
+          "effect_name_en": "Chronal Pulse Sphere",
+          "use_case": "projectile / temporal pulse",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Chrono Distortion Core shot effect, blue-gold chronal pulse sphere with a pale white center, rotating brass-like clock ring fragments, long clean time streaks, advanced temporal weapon energy, elegant legendary silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        },
+        {
+          "effect_id": "impact",
+          "effect_name_ko": "타임 슬로우 필드",
+          "effect_name_en": "Time Slow Field",
+          "use_case": "impact / slow field",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Chrono Distortion Core impact effect, circular hourglass sigil field with gold-blue time ripples, suspended shard ring, pale white chronal bloom, strong slowdown aura, legendary temporal control effect, readable circular magic-tech silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no tower, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        }
+      ]
+    },
+    {
+      "id": "singularity_cannon",
+      "name_ko": "싱귤래리티 캐논",
+      "name_en": "Singularity Cannon",
+      "rarity": "legendary",
+      "visual_hook": "endgame siege cannon with a huge crescent maw barrel around a red singularity core",
+      "signature_palette": "crimson-black armor plates, molten red singularity chamber, graphite anchor claws, dim ember highlights",
+      "effects": [
+        {
+          "effect_id": "shot",
+          "effect_name_ko": "싱귤래리티 셸",
+          "effect_name_en": "Singularity Shell",
+          "use_case": "projectile / siege shot",
+          "blend_hint": "mixed",
+          "prompt": "cyberpunk tower defense VFX asset, Singularity Cannon shot effect, crimson-black singularity shell with a compressed dark core, red gravitational flame ring, fierce red distortion wake, catastrophic endgame siege energy, heavy dense projectile silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no cannon body, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        },
+        {
+          "effect_id": "impact",
+          "effect_name_ko": "블랙홀 임플로전",
+          "effect_name_en": "Black Hole Implosion",
+          "use_case": "impact / catastrophic burst",
+          "blend_hint": "mixed",
+          "prompt": "cyberpunk tower defense VFX asset, Singularity Cannon impact effect, violent black hole implosion with a deep black center, crimson collapse halo, torn-space spiral streaks, endgame catastrophic gravity hit effect, extremely dramatic inward-pulling silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no cannon body, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        }
+      ]
+    },
+    {
+      "id": "aegis_ai_citadel",
+      "name_ko": "이지스 AI 시타델",
+      "name_en": "Aegis AI Citadel",
+      "rarity": "legendary",
+      "visual_hook": "legendary fortress tower with shield wings and a central citadel keep",
+      "signature_palette": "ivory armor walls, shield-blue hardlight wings, royal cyan core, dark steel base structure",
+      "effects": [
+        {
+          "effect_id": "shot",
+          "effect_name_ko": "이지스 랜스 볼리",
+          "effect_name_en": "Aegis Lance Volley",
+          "use_case": "beam / legendary shot",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Aegis AI Citadel shot effect, shield-blue hardlight lance volley with a royal cyan core, layered hex shield shards flying along the beam path, pristine ivory-defense technology feeling, legendary fortress attack energy, regal and highly readable silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no fortress body, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        },
+        {
+          "effect_id": "impact",
+          "effect_name_ko": "이지스 돔 펄스",
+          "effect_name_en": "Aegis Dome Pulse",
+          "use_case": "impact / defense pulse field",
+          "blend_hint": "additive",
+          "prompt": "cyberpunk tower defense VFX asset, Aegis AI Citadel impact effect, expanding shield-blue aegis dome burst with bright white-cyan center light, hex barrier ripples, premium fortress-grade defense pulse, holy-tech protection energy, clear hemispheric shield silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no fortress body, no weapon source, no character, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+        }
+      ]
+    }
+  ],
+  "enemies": [
+    {
+      "id": "runner_drone",
+      "name_ko": "러너 드론",
+      "name_en": "Runner Drone",
+      "visual_hook": "speed-focused quadruped scout that looks like a red-black robotic hound",
+      "signature_palette": "matte graphite chassis, large crimson armor plates on shoulders and hips, black leg struts, bright red optic eye",
+      "effect_name_ko": "크림슨 대시 슬래시",
+      "effect_name_en": "Crimson Dash Slash",
+      "use_case": "signature attack / melee rush",
+      "blend_hint": "additive",
+      "prompt": "cyberpunk tower defense VFX asset, Runner Drone attack effect, crimson dash slash with sharp red claw streaks and angular spark fragments, robotic hound pounce energy, fast predatory motion silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no monster body, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+    },
+    {
+      "id": "riot_bot",
+      "name_ko": "라이엇 봇",
+      "name_en": "Riot Bot",
+      "visual_hook": "standard assault android with square riot-police armor and a bright amber visor",
+      "signature_palette": "off-white riot shell, slate gray joints, amber visor band, muted orange utility plates",
+      "effect_name_ko": "앰버 펄스 샷",
+      "effect_name_en": "Amber Pulse Shot",
+      "use_case": "signature attack / rifle shot",
+      "blend_hint": "additive",
+      "prompt": "cyberpunk tower defense VFX asset, Riot Bot attack effect, disciplined amber pulse rifle shot with a square muzzle burst and a straight orange tracer, authoritarian security-tech energy, clean tactical silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no monster body, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+    },
+    {
+      "id": "shield_carrier",
+      "name_ko": "실드 캐리어",
+      "name_en": "Shield Carrier",
+      "visual_hook": "hunched frontline robot carrying a giant cobalt hex shield projector in front of its body",
+      "signature_palette": "deep gunmetal body, cobalt blue shield plane, white projector housing, steel-gray limbs",
+      "effect_name_ko": "실드 배시 쇼크웨이브",
+      "effect_name_en": "Shield Bash Shockwave",
+      "use_case": "signature attack / frontal bash",
+      "blend_hint": "additive",
+      "prompt": "cyberpunk tower defense VFX asset, Shield Carrier attack effect, dense cobalt-blue frontal shockwave stamped with hex barrier geometry, shield-ram slam energy, forward-pushing wall-like silhouette, heavy frontline impact feel, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no monster body, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+    },
+    {
+      "id": "swarm_mite",
+      "name_ko": "스웜 마이트",
+      "name_en": "Swarm Mite",
+      "visual_hook": "tiny orange-black insect robot with a nasty crab-like body",
+      "signature_palette": "bright orange shell, charcoal limbs, acid yellow sensor dots, black underbody",
+      "effect_name_ko": "애시드 바이트 스플래시",
+      "effect_name_en": "Acid Bite Splash",
+      "use_case": "signature attack / toxic bite",
+      "blend_hint": "mixed",
+      "prompt": "cyberpunk tower defense VFX asset, Swarm Mite attack effect, acid yellow bite splash with bright orange insect strike energy, toxic droplet flecks, nasty close-range swarm hit effect, small vicious silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no monster body, no environment, no floor, no smoke, no debris chunks, no text, no logo, no watermark"
+    },
+    {
+      "id": "repair_unit",
+      "name_ko": "리페어 유닛",
+      "name_en": "Repair Unit",
+      "visual_hook": "tripod support drone with mint repair arms and a white service core",
+      "signature_palette": "off-white service shell, mint green repair lights, soft teal tools, brushed aluminum limbs",
+      "effect_name_ko": "리페어 테더 빔",
+      "effect_name_en": "Repair Tether Beam",
+      "use_case": "signature action / support beam",
+      "blend_hint": "additive",
+      "prompt": "cyberpunk tower defense VFX asset, Repair Unit support effect, mint-green repair tether beam with a soft teal core, clean service sparks, maintenance nanotech utility energy, precise supportive silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no drone body, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+    },
+    {
+      "id": "phase_stalker",
+      "name_ko": "페이즈 스토커",
+      "name_en": "Phase Stalker",
+      "visual_hook": "glitch assassin shaped like a purple-black cyber panther",
+      "signature_palette": "black glass armor, iridescent purple energy seams, magenta glitch edges, dark chrome claws",
+      "effect_name_ko": "글리치 클로 슬래시",
+      "effect_name_en": "Glitch Claw Slash",
+      "use_case": "signature attack / phase strike",
+      "blend_hint": "additive",
+      "prompt": "cyberpunk tower defense VFX asset, Phase Stalker attack effect, purple-black glitch claw slash with magenta distortion tears and phantom afterimage streaks, assassin-class phase strike energy, feral panther-like motion silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no monster body, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+    },
+    {
+      "id": "emp_wasp",
+      "name_ko": "EMP 와스프",
+      "name_en": "EMP Wasp",
+      "visual_hook": "yellow-black aerial hunter shaped like a mechanical wasp with a blue EMP stinger sac",
+      "signature_palette": "hazard yellow armor, charcoal frame, electric blue EMP sac, translucent wing membranes",
+      "effect_name_ko": "EMP 스팅어 볼트",
+      "effect_name_en": "EMP Stinger Bolt",
+      "use_case": "signature attack / aerial EMP strike",
+      "blend_hint": "additive",
+      "prompt": "cyberpunk tower defense VFX asset, EMP Wasp attack effect, electric-blue EMP stinger bolt with a compact wasp-like dart silhouette, yellow crackle flecks, high-voltage aerial harassment energy, fast sharp projectile form, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no monster body, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+    },
+    {
+      "id": "siege_mech",
+      "name_ko": "시즈 메크",
+      "name_en": "Siege Mech",
+      "visual_hook": "industrial siege crawler with six heavy legs and a demolition ram face",
+      "signature_palette": "military olive armor, hazard yellow stripes, rusted steel joints, dark soot exhausts",
+      "effect_name_ko": "램 쇼크웨이브",
+      "effect_name_en": "Ram Shockwave",
+      "use_case": "signature attack / siege impact",
+      "blend_hint": "mixed",
+      "prompt": "cyberpunk tower defense VFX asset, Siege Mech attack effect, industrial ram shockwave with hazard-yellow kinetic burst lines, hot orange steel sparks, short brutal demolition impact silhouette, heavy siege crawler force, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no monster body, no environment, no floor, no smoke clouds, no debris chunks, no text, no logo, no watermark"
+    },
+    {
+      "id": "clone_husk",
+      "name_ko": "클론 허스크",
+      "name_en": "Clone Husk",
+      "visual_hook": "split-shell humanoid with pale armor and cyan fracture seams that hint at duplication",
+      "signature_palette": "pale ivory shell, cyan inner fractures, cold silver joints, faint ghost-blue afterimage",
+      "effect_name_ko": "프랙처 스플릿 버스트",
+      "effect_name_en": "Fracture Split Burst",
+      "use_case": "signature attack / clone fracture",
+      "blend_hint": "additive",
+      "prompt": "cyberpunk tower defense VFX asset, Clone Husk attack effect, cyan fracture split burst with ghost-blue duplicate ripple and shell-crack slash lines, unstable cloning energy, eerie humanoid split silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no monster body, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+    },
+    {
+      "id": "data_behemoth",
+      "name_ko": "데이터 베히모스",
+      "name_en": "Data Behemoth",
+      "visual_hook": "massive cube-armored brute with glowing gold data blocks embedded in an obsidian body",
+      "signature_palette": "obsidian black armor, bright gold data cubes, turquoise code glow, heavy dark steel joints",
+      "effect_name_ko": "데이터 큐브 스매시 웨이브",
+      "effect_name_en": "Data Cube Smash Wave",
+      "use_case": "signature attack / heavy smash",
+      "blend_hint": "mixed",
+      "prompt": "cyberpunk tower defense VFX asset, Data Behemoth attack effect, gold data cube smash wave with an obsidian-dark center and turquoise code sparks, massive brute-force digital impact, heavy geometric silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no monster body, no environment, no floor, no smoke, no debris chunks, no text, no logo, no watermark"
+    },
+    {
+      "id": "overmind_proxy",
+      "name_ko": "오버마인드 프록시",
+      "name_en": "Overmind Proxy",
+      "visual_hook": "floating royal AI avatar with a porcelain shell, magenta brain-core, and orbiting halo blades",
+      "signature_palette": "porcelain white shell, vivid magenta central core, black halo blades, soft violet underglow",
+      "effect_name_ko": "사이오닉 랜스",
+      "effect_name_en": "Psionic Lance",
+      "use_case": "signature attack / elite psi strike",
+      "blend_hint": "additive",
+      "prompt": "cyberpunk tower defense VFX asset, Overmind Proxy attack effect, vivid magenta psionic lance with porcelain-white halo blade fragments and soft violet underglow, regal AI avatar energy, precise and aristocratic strike silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no monster body, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+    },
+    {
+      "id": "titan_walker",
+      "name_ko": "타이탄 워커",
+      "name_en": "Titan Walker",
+      "visual_hook": "colossal four-legged fortress walker with a blazing red reactor chest",
+      "signature_palette": "dark iron armor, crimson reactor windows, ash-gray legs, burnt orange heat vents",
+      "effect_name_ko": "리액터 아틸러리 블라스트",
+      "effect_name_en": "Reactor Artillery Blast",
+      "use_case": "signature attack / fortress cannon",
+      "blend_hint": "mixed",
+      "prompt": "cyberpunk tower defense VFX asset, Titan Walker attack effect, crimson reactor artillery blast with burnt orange vent flare, fortress-scale impact pulse, heavy war machine energy, large blunt destructive silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no monster body, no environment, no floor, no smoke clouds, no debris chunks, no text, no logo, no watermark"
+    },
+    {
+      "id": "singularity_seraph",
+      "name_ko": "싱귤래리티 세라프",
+      "name_en": "Singularity Seraph",
+      "visual_hook": "angelic airborne boss with black-white armor and a violet singularity halo",
+      "signature_palette": "polished black and white plates, vivid violet singularity core, silver wing rings, pale lavender energy trails",
+      "effect_name_ko": "헤일로 스피어 버스트",
+      "effect_name_en": "Halo Spear Burst",
+      "use_case": "signature attack / boss singularity strike",
+      "blend_hint": "additive",
+      "prompt": "cyberpunk tower defense VFX asset, Singularity Seraph attack effect, violet halo spear beam with silver wing-ring shards and pale lavender singularity trails, angelic machine boss energy, divine yet dangerous strike silhouette, effect-only image, single effect element, centered composition, full effect visible, enough empty margin, pure black background, no monster body, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+    }
+  ]
+}

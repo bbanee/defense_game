@@ -1,0 +1,13 @@
+﻿{
+  "bannerId": "starter",
+  "cost": {
+    "currency": "diamond",
+    "amount": 300
+  },
+  "rates": [
+    {"rarity": "common", "percent": 64.9},
+    {"rarity": "rare", "percent": 30},
+    {"rarity": "unique", "percent": 5},
+    {"rarity": "legendary", "percent": 0.1}
+  ]
+}

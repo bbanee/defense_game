@@ -1,0 +1,11 @@
+﻿{
+  "id": "normal",
+  "nameKey": "difficulty.normal",
+  "hpMultiplier": 1.65,
+  "speedMultiplier": 1.08,
+  "rewardMultiplier": 0.7,
+  "startingBattleGold": 320,
+  "buildCostMultiplier": 1.55,
+  "towerUpgradeCostMultiplier": 2.0,
+  "sellRefundMultiplier": 0.42
+}

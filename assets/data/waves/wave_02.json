@@ -1,0 +1,10 @@
+﻿{
+  "id": "wave_02",
+  "waveClearReward": 80,
+  "spawns": [
+    {"enemyId": "grunt_basic", "at": 0.5, "count": 4, "intervalMs": 500},
+    {"enemyId": "sprinter_basic", "at": 2.0, "count": 3, "intervalMs": 700},
+    {"enemyId": "tank_basic", "at": 4.5, "count": 2, "intervalMs": 1200},
+    {"enemyId": "sprinter_basic", "at": 8.0, "count": 3, "intervalMs": 650}
+  ]
+}

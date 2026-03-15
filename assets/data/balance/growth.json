@@ -1,0 +1,121 @@
+﻿{
+  "defaultPermanentGrowth": {
+    "damagePercentPerLevel": 0.055,
+    "fireRatePercentPerLevel": 0.025,
+    "rangeBonusEveryLevels": 4,
+    "rangeBonusPerStep": 0.8
+  },
+  "core": {
+    "hp": {
+      "baseCost": 3000,
+      "costMultiplier": 1.55,
+      "maxLevel": 15,
+      "growthMultiplier": 1.02
+    },
+    "shield": {
+      "baseCost": 5000,
+      "costMultiplier": 1.68,
+      "maxLevel": 15,
+      "growthMultiplier": 1.03
+    },
+    "defense": {
+      "baseCost": 10000,
+      "costMultiplier": 1.85,
+      "maxLevel": 15,
+      "flatIncrease": 0.008,
+      "cap": 0.45
+    }
+  },
+  "towerGrowthOverrides": {
+    "cannon_basic": {
+      "damagePercentPerLevel": 0.058,
+      "fireRatePercentPerLevel": 0.022,
+      "rangeBonusEveryLevels": 4,
+      "rangeBonusPerStep": 0.8
+    },
+    "rapid_basic": {
+      "damagePercentPerLevel": 0.038,
+      "fireRatePercentPerLevel": 0.036,
+      "rangeBonusEveryLevels": 5,
+      "rangeBonusPerStep": 0.7
+    },
+    "shotgun_basic": {
+      "damagePercentPerLevel": 0.052,
+      "fireRatePercentPerLevel": 0.018,
+      "rangeBonusEveryLevels": 4,
+      "rangeBonusPerStep": 0.6
+    },
+    "support_basic": {
+      "damagePercentPerLevel": 0.03,
+      "fireRatePercentPerLevel": 0.028,
+      "rangeBonusEveryLevels": 3,
+      "rangeBonusPerStep": 1.0
+    },
+    "mortar_basic": {
+      "damagePercentPerLevel": 0.05,
+      "fireRatePercentPerLevel": 0.02,
+      "rangeBonusEveryLevels": 3,
+      "rangeBonusPerStep": 1.1
+    },
+    "chain_basic": {
+      "damagePercentPerLevel": 0.047,
+      "fireRatePercentPerLevel": 0.031,
+      "rangeBonusEveryLevels": 4,
+      "rangeBonusPerStep": 0.9
+    },
+    "drone_basic": {
+      "damagePercentPerLevel": 0.042,
+      "fireRatePercentPerLevel": 0.034,
+      "rangeBonusEveryLevels": 4,
+      "rangeBonusPerStep": 1.0
+    },
+    "frost_basic": {
+      "damagePercentPerLevel": 0.044,
+      "fireRatePercentPerLevel": 0.027,
+      "rangeBonusEveryLevels": 3,
+      "rangeBonusPerStep": 1.2
+    },
+    "infection_basic": {
+      "damagePercentPerLevel": 0.049,
+      "fireRatePercentPerLevel": 0.026,
+      "rangeBonusEveryLevels": 4,
+      "rangeBonusPerStep": 1.0
+    },
+    "laser_basic": {
+      "damagePercentPerLevel": 0.053,
+      "fireRatePercentPerLevel": 0.024,
+      "rangeBonusEveryLevels": 4,
+      "rangeBonusPerStep": 0.9
+    },
+    "gravity_basic": {
+      "damagePercentPerLevel": 0.064,
+      "fireRatePercentPerLevel": 0.021,
+      "rangeBonusEveryLevels": 3,
+      "rangeBonusPerStep": 1.3
+    },
+    "missile_basic": {
+      "damagePercentPerLevel": 0.067,
+      "fireRatePercentPerLevel": 0.017,
+      "rangeBonusEveryLevels": 3,
+      "rangeBonusPerStep": 1.1
+    },
+    "sniper_basic": {
+      "damagePercentPerLevel": 0.072,
+      "fireRatePercentPerLevel": 0.015,
+      "rangeBonusEveryLevels": 2,
+      "rangeBonusPerStep": 1.4
+    },
+    "chrono_basic": {
+      "damagePercentPerLevel": 0.057,
+      "fireRatePercentPerLevel": 0.03,
+      "rangeBonusEveryLevels": 3,
+      "rangeBonusPerStep": 1.3
+    },
+    "singularity_basic": {
+      "damagePercentPerLevel": 0.078,
+      "fireRatePercentPerLevel": 0.012,
+      "rangeBonusEveryLevels": 2,
+      "rangeBonusPerStep": 1.2
+    }
+  }
+}

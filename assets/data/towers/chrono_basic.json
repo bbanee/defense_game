@@ -1,0 +1,36 @@
+﻿{
+    "id":  "chrono_basic",
+    "nameKey":  "tower.chrono.name",
+    "descKey":  "tower.chrono.desc",
+    "rarity":  "legendary",
+    "baseDamage":  20,
+    "fireRate":  1.8,
+    "range":  120,
+    "attackType":  "hitscan",
+    "projectileSpeed":  0,
+    "projectileSize":  0,
+    "buildCost":  170,
+    "upgradeCostBase":  145,
+    "upgradeCostMultiplier":  0.75,
+    "sellRefundRate":  0.75,
+    "unlockShards":  40,
+    "levelUpShardsBase":  25,
+    "levelUpShardsMultiplier":  1.41,
+    "ultimateChance":  0.13,
+    "ultimateDamageMultiplier":  2.6,
+    "effects":  [
+                    {
+                        "type":  "time_dilate",
+                        "value":  0.32,
+                        "durationSec":  1.8,
+                        "atLevel":  1
+                    },
+                    {
+                        "type":  "time_dilate",
+                        "value":  0.5,
+                        "durationSec":  1.3,
+                        "chance":  0.3,
+                        "atLevel":  7
+                    }
+                ]
+}

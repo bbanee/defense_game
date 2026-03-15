@@ -1,0 +1,36 @@
+﻿{
+    "id":  "missile_basic",
+    "nameKey":  "tower.missile.name",
+    "descKey":  "tower.missile.desc",
+    "rarity":  "unique",
+    "baseDamage":  30,
+    "fireRate":  0.62,
+    "range":  122,
+    "attackType":  "projectile",
+    "projectileSpeed":  520,
+    "projectileSize":  26,
+    "buildCost":  140,
+    "upgradeCostBase":  120,
+    "upgradeCostMultiplier":  0.7,
+    "sellRefundRate":  0.75,
+    "unlockShards":  20,
+    "levelUpShardsBase":  20,
+    "levelUpShardsMultiplier":  1.36,
+    "ultimateChance":  0.11,
+    "ultimateDamageMultiplier":  2.35,
+    "effects":  [
+                    {
+                        "type":  "vulnerability",
+                        "value":  0.2,
+                        "durationSec":  2.2,
+                        "atLevel":  1
+                    },
+                    {
+                        "type":  "vulnerability",
+                        "value":  0.34,
+                        "durationSec":  2.6,
+                        "chance":  0.45,
+                        "atLevel":  7
+                    }
+                ]
+}

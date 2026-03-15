@@ -1,0 +1,41 @@
+{
+  "project": "Project NEON BASTION",
+  "type": "map_image_prompts",
+  "target": "ChatGPT image generation",
+  "composition_mode": "smartphone portrait",
+  "recommended_aspect_ratio": "9:16 or similar portrait ratio",
+  "common_style_guide": "top-down isometric cyberpunk tower defense gameplay map concept, designed for smartphone portrait mode, tall vertical 9:16 composition, the entire map must fit inside one portrait frame, width compressed and height emphasized, clear top-to-bottom gameplay flow, enemy entrance near the top edge, defended human base or defense core near the lower third or bottom edge, gameplay-first layout, crystal-clear enemy route readability, clearly separated tower build pads and road lanes, readable at thumbnail size, strong overall silhouette, empty battlefield before combat, no characters, no monsters, no vehicles, no explosions, no muzzle flashes, no UI, no text, no logo, no watermark",
+  "retry_suffix": "If the result looks landscape, too wide, or too cinematic instead of a readable gameplay map, retry with this sentence appended: make the map clearly portrait-oriented for a smartphone screen, extend the map vertically, reduce the width, place the entrance at the top and the defended base at the bottom or lower third, simplify decorative buildings, make the route and tower build pads much more readable, and remove cinematic clutter.",
+  "maps": [
+    {
+      "id": "map_branching_neon_junction_split_portrait",
+      "name_ko": "네온 정션 스플릿 세로형",
+      "name_en": "Neon Junction Split Portrait",
+      "type_ko": "분기형 맵",
+      "type_en": "Branching Map",
+      "layout_identity": "one route enters from the top, splits into left and right branches down the portrait frame, then merges again near the lower half",
+      "palette": "teal, hot magenta, orange warning accents, wet steel gray",
+      "prompt": "top-down isometric cyberpunk tower defense gameplay map concept, portrait-oriented branching map for a futuristic city defense game, designed for a smartphone portrait screen, tall vertical composition, the entire map fully visible in one 9:16 portrait frame, one main enemy route enters from the top center, descends through a narrow urban corridor, then splits at the upper-middle into two clearly readable branches that run down the left and right sides of the screen, one branch is an elevated maglev transit lane and the other is a lower street-level combat lane, both branches create mirrored firing lanes and later merge again in the lower-middle before the final approach to a defended human command tower near the bottom center, strong vertical Y-shaped silhouette, tall trident-like layout, clear split point, clear left lane, clear right lane, clear merge point, clear final choke point, large obvious tower build pads at the split point, along the side corridors, around the merge point, and around the final defense zone, human evacuation district converted into a fortified defense sector, neon barricades, holographic route markers, maglev overpasses, rain-slick pavement, teal and hot magenta city lighting with orange warning accents, readable road materials clearly different from buildable platforms, gameplay-first readability, portrait mobile map, empty battlefield before combat, no characters, no enemies, no vehicles, no explosions, no UI, no text, no logo, no watermark"
+    },
+    {
+      "id": "map_spiral_helix_core_portrait",
+      "name_ko": "헬릭스 코어 스파이럴 세로형",
+      "name_en": "Helix Core Spiral Portrait",
+      "type_ko": "나선형 맵",
+      "type_en": "Spiral Map",
+      "layout_identity": "one lane enters from the top and coils inward in a tall oval spiral toward a defended core in the lower third",
+      "palette": "deep violet, electric blue, gold-white core",
+      "prompt": "top-down isometric cyberpunk tower defense gameplay map concept, portrait-oriented spiral map for a futuristic city defense game, designed for a smartphone portrait screen, tall vertical composition, the entire map fully visible in one 9:16 portrait frame, one uninterrupted enemy lane enters from the top edge and begins a clean vertically stretched oval spiral that coils inward toward a glowing human defense reactor positioned in the lower third of the frame, the spiral must feel tall and elongated rather than flat and circular, with clear outer turns, readable middle coils, and a tight inner kill zone around the defense core, strong vertical oval silhouette, obvious spiral geometry from above, concentric defense terraces, radial maintenance bridges, luminous coolant channels, data pylons, large obvious tower build pads placed along the upper outer ring, both side curves, the middle turns, and the inner spiral zone near the reactor, futuristic civic reactor complex under AI siege, deep violet and electric blue palette with a bright gold-white central core, readable material separation between road, walls, and build pads, gameplay-first readability, portrait mobile map, empty battlefield before combat, no characters, no enemies, no vehicles, no explosions, no UI, no text, no logo, no watermark"
+    },
+    {
+      "id": "map_continuous_gridlock_gauntlet_portrait",
+      "name_ko": "그리드락 건틀릿 세로형",
+      "name_en": "Gridlock Gauntlet Portrait",
+      "type_ko": "일자형 연속 맵",
+      "type_en": "Continuous Single-Route Map",
+      "layout_identity": "one long single route runs from the top to the bottom through stacked switchbacks and layered urban corridors with no branching",
+      "palette": "steel gray, dark concrete, acid green guidance lights, amber warning accents",
+      "prompt": "top-down isometric cyberpunk tower defense gameplay map concept, portrait-oriented long continuous single-route map for a futuristic city defense game, designed for a smartphone portrait screen, tall vertical composition, the entire map fully visible in one 9:16 portrait frame, not a simple straight road, one uninterrupted enemy lane starts near the top edge and snakes all the way downward through the entire portrait frame using stacked rectangular switchbacks, repeated left-right turns, long firing corridors, layered service passages, and occasional elevated overpasses that still remain part of the same single route, absolutely no branching anywhere, one clearly defined entrance near the top center and one clearly defined defended stronghold near the bottom center, strong elongated vertical silhouette, tall serpentine layout, obvious tower build pads placed beside long straight kill corridors, around repeated ninety-degree corner traps, and around the final defense approach, dense megacity infrastructure, freight platforms, service alleys, transit barriers, hazard barricades, neon lane arrows, steel gray and dark concrete materials with acid green guidance lights and amber warning accents, readable separation between path and build pads, gameplay-first readability, portrait mobile map, empty battlefield before combat, no characters, no enemies, no vehicles, no explosions, no UI, no text, no logo, no watermark"
+    }
+  ]
+}

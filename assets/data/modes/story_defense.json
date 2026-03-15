@@ -1,0 +1,6 @@
+﻿{
+  "id": "story_defense",
+  "nameKey": "mode.story",
+  "winCondition": "allWavesCleared",
+  "loseCondition": "coreDestroyed"
+}

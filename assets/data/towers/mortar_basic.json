@@ -1,0 +1,38 @@
+﻿{
+    "id":  "mortar_basic",
+    "nameKey":  "tower.mortar.name",
+    "descKey":  "tower.mortar.desc",
+    "rarity":  "common",
+    "baseDamage":  19,
+    "fireRate":  0.8,
+    "range":  112,
+    "attackType":  "projectile",
+    "projectileSpeed":  360,
+    "projectileSize":  36,
+    "buildCost":  120,
+    "upgradeCostBase":  95,
+    "upgradeCostMultiplier":  0.65,
+    "sellRefundRate":  0.75,
+    "unlockShards":  0,
+    "levelUpShardsBase":  12,
+    "levelUpShardsMultiplier":  1.31,
+    "ultimateChance":  0.07,
+    "ultimateDamageMultiplier":  1.95,
+    "effects":  [
+                    {
+                        "type":  "slow",
+                        "value":  0.15,
+                        "durationSec":  1.2,
+                        "maxStack":  3,
+                        "atLevel":  1
+                    },
+                    {
+                        "type":  "slow",
+                        "value":  0.24,
+                        "durationSec":  1.5,
+                        "maxStack":  4,
+                        "chance":  0.35,
+                        "atLevel":  7
+                    }
+                ]
+}

@@ -1,0 +1,36 @@
+﻿{
+    "id":  "laser_basic",
+    "nameKey":  "tower.laser.name",
+    "descKey":  "tower.laser.desc",
+    "rarity":  "rare",
+    "baseDamage":  17,
+    "fireRate":  1.5,
+    "range":  112,
+    "attackType":  "hitscan",
+    "projectileSpeed":  0,
+    "projectileSize":  0,
+    "buildCost":  130,
+    "upgradeCostBase":  110,
+    "upgradeCostMultiplier":  0.65,
+    "sellRefundRate":  0.75,
+    "unlockShards":  20,
+    "levelUpShardsBase":  16,
+    "levelUpShardsMultiplier":  1.34,
+    "ultimateChance":  0.09,
+    "ultimateDamageMultiplier":  2.2,
+    "effects":  [
+                    {
+                        "type":  "dot",
+                        "value":  11,
+                        "durationSec":  1.7,
+                        "atLevel":  1
+                    },
+                    {
+                        "type":  "dot",
+                        "value":  18,
+                        "durationSec":  2.3,
+                        "chance":  0.35,
+                        "atLevel":  7
+                    }
+                ]
+}

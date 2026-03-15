@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "playerLobbyUpgrades": {
+    "cannon_basic": { "identity": 0, "operations": 0, "synergy": 0 },
+    "rapid_basic": { "identity": 0, "operations": 0, "synergy": 0 },
+    "shotgun_basic": { "identity": 0, "operations": 0, "synergy": 0 },
+    "support_basic": { "identity": 0, "operations": 0, "synergy": 0 },
+    "mortar_basic": { "identity": 0, "operations": 0, "synergy": 0 },
+    "chain_basic": { "identity": 0, "operations": 0, "synergy": 0 },
+    "drone_basic": { "identity": 0, "operations": 0, "synergy": 0 },
+    "frost_basic": { "identity": 0, "operations": 0, "synergy": 0 },
+    "infection_basic": { "identity": 0, "operations": 0, "synergy": 0 },
+    "laser_basic": { "identity": 0, "operations": 0, "synergy": 0 },
+    "gravity_basic": { "identity": 0, "operations": 0, "synergy": 0 },
+    "sniper_basic": { "identity": 0, "operations": 0, "synergy": 0 },
+    "missile_basic": { "identity": 0, "operations": 0, "synergy": 0 },
+    "chrono_basic": { "identity": 0, "operations": 0, "synergy": 0 },
+    "singularity_basic": { "identity": 0, "operations": 0, "synergy": 0 }
+  }
+}

@@ -1,0 +1,402 @@
+{
+  "project": "Project NEON BASTION",
+  "prompt_version": "chatgpt_tower_special_status_effects_v1",
+  "goal": "Create one special skill outgoing VFX prompt and one on-hit status overlay prompt for every tower.",
+  "workflow": "Generate effect images in ChatGPT, then remove the black background in post-processing and composite them in-game.",
+  "render_note": "Outgoing effects are isolated cast/projectile images. Hit overlays are body-wrap effects designed to be composited around a monster sprite with an open center.",
+  "retry_note": "If the result includes a tower, a monster, a weapon, or turns into a floor decal or a full magic circle, retry with this sentence appended: remove all units and scenery, keep only one isolated VFX element on a pure black background, keep the center mostly open for an enemy sprite, wrap the effect around an invisible target body, and do not place it on the ground.",
+  "outgoing_effect_style_guide": "cyberpunk tower defense VFX asset, premium mobile game special skill cast effect illustration, effect-only image, single outgoing VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no tower, no monster, no weapon source, no environment, no floor, no smoke clouds, no debris chunks, no text, no logo, no watermark",
+  "hit_overlay_style_guide": "cyberpunk tower defense VFX asset, premium mobile game status overlay illustration, effect-only image, single body-wrap VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, designed to wrap around an invisible enemy sprite, keep the center mostly open for compositing, floating around the target body rather than painted on the floor, no tower, no monster, no character body, no environment, no floor decal, no smoke clouds, no debris chunks, no text, no logo, no watermark",
+  "towers": [
+    {
+      "id": "pulse_turret",
+      "name_ko": "펄스 터렛",
+      "name_en": "Pulse Turret",
+      "rarity": "common",
+      "visual_hook": "compact dual-barrel pulse gun with a round reactor chest and a low hex base",
+      "signature_palette": "saturated cyan reactor, matte navy armor panels, warm copper conductive rings, light gray support frame",
+      "special_skill_name_ko": "EMP 오버로드",
+      "special_skill_name_en": "EMP Overload",
+      "status_concept_ko": "감전 / EMP 구속",
+      "status_concept_en": "shock / EMP bind",
+      "special_outgoing_effect": {
+        "name_ko": "EMP 오버로드 볼트",
+        "name_en": "EMP Overload Bolt",
+        "purpose": "special skill outgoing / cast",
+        "recommended_composite": "additive",
+        "prompt": "cyberpunk tower defense VFX asset, Pulse Turret special skill outgoing effect, EMP Overload Bolt, a compact cyan electromagnetic dart with a brilliant white-cyan core, two warm copper induction loops spinning around the bolt, crisp hex pulse shards, tiny static forks trailing backward, disciplined municipal defense technology look, fast precise silhouette, effect-only image, single outgoing VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no weapon source, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      },
+      "hit_overlay_effect": {
+        "name_ko": "EMP 클램프 마크",
+        "name_en": "EMP Clamp Mark",
+        "purpose": "on-hit status overlay around target",
+        "recommended_composite": "additive or screen",
+        "prompt": "cyberpunk tower defense VFX asset, Pulse Turret special hit overlay effect, EMP Clamp Mark, a hollow cyan hex shock ring wrapped around an invisible enemy body, floating copper restraint brackets, short white-cyan static arcs, small hex pulse nodes, sharp electrical restraint look, clear open center for compositing over a monster sprite, floating around the body instead of on the floor, effect-only image, single body-wrap VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no character body, no environment, no floor decal, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "railguard_battery",
+      "name_ko": "레일가드 포대",
+      "name_en": "Railguard Battery",
+      "rarity": "common",
+      "visual_hook": "precision anti-armor rail platform with an extra-long barrel and open accelerator spine",
+      "signature_palette": "ceramic white outer shell, graphite rail spine, burnt orange magnetic coils, dark steel joints",
+      "special_skill_name_ko": "장갑 파쇄",
+      "special_skill_name_en": "Armor Rupture",
+      "status_concept_ko": "방어 파쇄 / 취약 노출",
+      "status_concept_en": "armor break / exposed",
+      "special_outgoing_effect": {
+        "name_ko": "아머 루처 랜스",
+        "name_en": "Armor Rupture Lance",
+        "purpose": "special skill outgoing / cast",
+        "recommended_composite": "additive",
+        "prompt": "cyberpunk tower defense VFX asset, Railguard Battery special skill outgoing effect, Armor Rupture Lance, a razor-thin orange-white penetrator lance with an ultra-bright needle core, narrow triangular breach markers, long straight magnetic streak, tiny burnt-orange coil sparks, elite anti-armor sniper energy, extremely disciplined high-velocity silhouette instead of a round blast, effect-only image, single outgoing VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no weapon source, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      },
+      "hit_overlay_effect": {
+        "name_ko": "브리치 프랙처 마크",
+        "name_en": "Breach Fracture Mark",
+        "purpose": "on-hit status overlay around target",
+        "recommended_composite": "additive",
+        "prompt": "cyberpunk tower defense VFX asset, Railguard Battery special hit overlay effect, Breach Fracture Mark, a narrow orange-white armor-break seam glowing across an invisible enemy body, floating triangular breach brackets, linear crack energy, precision weak-point markers, hard industrial sniper technology feel, clear open center for compositing over a monster sprite, not a round explosion and not a ground decal, effect-only image, single body-wrap VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable slender silhouette, no turret, no monster, no character body, no environment, no floor decal, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "scatter_blaster",
+      "name_ko": "스캐터 블래스터",
+      "name_en": "Scatter Blaster",
+      "rarity": "common",
+      "visual_hook": "short-range breacher turret with a bulldog profile and a huge drum muzzle",
+      "signature_palette": "matte black shell, hazard yellow armor plates, glowing orange blast chamber, raw steel recoil parts",
+      "special_skill_name_ko": "브리치 쇼크",
+      "special_skill_name_en": "Breach Shock",
+      "status_concept_ko": "기절 / 파쇄 흔들림",
+      "status_concept_en": "stagger / shred shock",
+      "special_outgoing_effect": {
+        "name_ko": "브리치 쇼크 버스트",
+        "name_en": "Breach Shock Burst",
+        "purpose": "special skill outgoing / cast",
+        "recommended_composite": "additive",
+        "prompt": "cyberpunk tower defense VFX asset, Scatter Blaster special skill outgoing effect, Breach Shock Burst, a brutal wedge-shaped orange pressure blast with a white-hot center core, many compact pellet streaks, hazard-yellow shock edges, raw close-range breacher force, short aggressive silhouette made for point-blank impact, effect-only image, single outgoing VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no weapon source, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      },
+      "hit_overlay_effect": {
+        "name_ko": "스태거 슈레드 링",
+        "name_en": "Stagger Shred Ring",
+        "purpose": "on-hit status overlay around target",
+        "recommended_composite": "additive or screen",
+        "prompt": "cyberpunk tower defense VFX asset, Scatter Blaster special hit overlay effect, Stagger Shred Ring, a jagged orange concussion halo wrapped around an invisible enemy body, broken hazard-yellow shock teeth, embedded pellet dents, vibrating impact spikes, rough industrial breacher feedback, clear open center for compositing over a monster sprite, floating around the body and not drawn on the floor, effect-only image, single body-wrap VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable chunky silhouette, no turret, no monster, no character body, no environment, no floor decal, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "frost_relay",
+      "name_ko": "프로스트 릴레이",
+      "name_en": "Frost Relay",
+      "rarity": "common",
+      "visual_hook": "cryo control obelisk with a floating freeze ring and vertical crystal fins",
+      "signature_palette": "porcelain white body, ice blue energy core, translucent cyan crystal fins, frost-silver mechanical joints",
+      "special_skill_name_ko": "딥 프리즈",
+      "special_skill_name_en": "Deep Freeze",
+      "status_concept_ko": "빙결 / 속도 고정",
+      "status_concept_en": "freeze / movement lock",
+      "special_outgoing_effect": {
+        "name_ko": "제로 프리즈 스파이크",
+        "name_en": "Zero Freeze Spike",
+        "purpose": "special skill outgoing / cast",
+        "recommended_composite": "additive or screen",
+        "prompt": "cyberpunk tower defense VFX asset, Frost Relay special skill outgoing effect, Zero Freeze Spike, an ice-blue cryo projectile with a bright frozen core, translucent crystal fins, thin circular frost halo, sharp cold energy streamers, elegant control-tower silhouette, premium clean sci-fi cryo technology, effect-only image, single outgoing VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no weapon source, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      },
+      "hit_overlay_effect": {
+        "name_ko": "아이스 프리즌 셸",
+        "name_en": "Ice Prison Shell",
+        "purpose": "on-hit status overlay around target",
+        "recommended_composite": "screen or mixed",
+        "prompt": "cyberpunk tower defense VFX asset, Frost Relay special hit overlay effect, Ice Prison Shell, a hollow ice-blue freeze shell around an invisible enemy body, layered frost bands, sharp crystal braces, hanging ice shards, delicate white frost mist kept very clean and minimal, unmistakable frozen debuff look, clear open center for compositing over a monster sprite, floating around the body instead of becoming a floor patch, effect-only image, single body-wrap VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable crystalline silhouette, no turret, no monster, no character body, no environment, no floor decal, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "drone_dock",
+      "name_ko": "드론 도크",
+      "name_en": "Drone Dock",
+      "rarity": "common",
+      "visual_hook": "flat circular drone launch pad with two hornet-like attack drones orbiting above it",
+      "signature_palette": "teal runway panels, off-white housing, black safety stripes, electric blue thrusters",
+      "special_skill_name_ko": "스웜 록",
+      "special_skill_name_en": "Swarm Lock",
+      "status_concept_ko": "추적 표식 / 드론 집속",
+      "status_concept_en": "tracking mark / drone focus",
+      "special_outgoing_effect": {
+        "name_ko": "스웜 태그 비콘",
+        "name_en": "Swarm Tag Beacon",
+        "purpose": "special skill outgoing / cast",
+        "recommended_composite": "additive",
+        "prompt": "cyberpunk tower defense VFX asset, Drone Dock special skill outgoing effect, Swarm Tag Beacon, a sleek teal command beacon dart with an electric-blue signal core, short holographic arrowheads, tiny drone trail marks and runway-like guidance streaks, agile coordinated swarm technology feel, compact aerodynamic silhouette, effect-only image, single outgoing VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no weapon source, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      },
+      "hit_overlay_effect": {
+        "name_ko": "드론 록 리티클",
+        "name_en": "Drone Lock Reticle",
+        "purpose": "on-hit status overlay around target",
+        "recommended_composite": "additive",
+        "prompt": "cyberpunk tower defense VFX asset, Drone Dock special hit overlay effect, Drone Lock Reticle, a teal lock-on reticle wrapped around an invisible enemy body, orbiting micro-drone silhouettes, thin electric-blue scan arcs, layered targeting brackets, smart coordinated swarm pursuit look, clear open center for compositing over a monster sprite, floating around the target body and not placed on the ground, effect-only image, single body-wrap VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no character body, no environment, no floor decal, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "tesla_arc_node",
+      "name_ko": "테슬라 아크 노드",
+      "name_en": "Tesla Arc Node",
+      "rarity": "rare",
+      "visual_hook": "electrical coil cage around a bright spherical plasma core",
+      "signature_palette": "dark copper frame, violet ceramic insulators, electric blue arcs, charcoal base",
+      "special_skill_name_ko": "체인 프리즌",
+      "special_skill_name_en": "Chain Prison",
+      "status_concept_ko": "감전 구속 / 연쇄 전류",
+      "status_concept_en": "electro bind / chain conduction",
+      "special_outgoing_effect": {
+        "name_ko": "아크 넷 볼트",
+        "name_en": "Arc Net Bolt",
+        "purpose": "special skill outgoing / cast",
+        "recommended_composite": "additive",
+        "prompt": "cyberpunk tower defense VFX asset, Tesla Arc Node special skill outgoing effect, Arc Net Bolt, a branching electric-blue bolt compressed into a forward-thrusting energy net, violet insulator sparks, forked lightning threads, spherical plasma knots, dangerous experimental power-grid feel, energetic jagged silhouette with clear forward motion, effect-only image, single outgoing VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no weapon source, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      },
+      "hit_overlay_effect": {
+        "name_ko": "볼트 케이지",
+        "name_en": "Volt Cage",
+        "purpose": "on-hit status overlay around target",
+        "recommended_composite": "additive",
+        "prompt": "cyberpunk tower defense VFX asset, Tesla Arc Node special hit overlay effect, Volt Cage, a spherical electric-blue lightning cage wrapped around an invisible enemy body, violet node anchors, snapping arc shackles, conductive lattice lines, unmistakable chain-lightning prison look, clear open center for compositing over a monster sprite, floating around the body rather than becoming a floor trap, effect-only image, single body-wrap VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable jagged silhouette, no turret, no monster, no character body, no environment, no floor decal, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "missile_matrix",
+      "name_ko": "미사일 매트릭스",
+      "name_en": "Missile Matrix",
+      "rarity": "rare",
+      "visual_hook": "boxy vertical missile battery made of stacked launch cells",
+      "signature_palette": "olive drab launch boxes, dark graphite chassis, bright orange warning panels, pale steel hinges",
+      "special_skill_name_ko": "헌터 마크",
+      "special_skill_name_en": "Hunter Mark",
+      "status_concept_ko": "미사일 표적 지정",
+      "status_concept_en": "missile designation",
+      "special_outgoing_effect": {
+        "name_ko": "헌터 디자인네이터 플레어",
+        "name_en": "Hunter Designator Flare",
+        "purpose": "special skill outgoing / cast",
+        "recommended_composite": "additive",
+        "prompt": "cyberpunk tower defense VFX asset, Missile Matrix special skill outgoing effect, Hunter Designator Flare, a hot orange targeting flare dart with a bright white core, compact warning chevrons, thin guided contrail lines, military strike designation feel, precise but aggressive artillery silhouette, effect-only image, single outgoing VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no weapon source, no environment, no floor, no smoke clouds, no debris, no text, no logo, no watermark"
+      },
+      "hit_overlay_effect": {
+        "name_ko": "미사일 락 존",
+        "name_en": "Missile Lock Zone",
+        "purpose": "on-hit status overlay around target",
+        "recommended_composite": "additive or screen",
+        "prompt": "cyberpunk tower defense VFX asset, Missile Matrix special hit overlay effect, Missile Lock Zone, a red-orange strike lock ring wrapped around an invisible enemy body, flashing warning triangles, painted target brackets, layered acquisition circles, militarized bombardment designation look, clear open center for compositing over a monster sprite, floating around the body and not painted on the battlefield, effect-only image, single body-wrap VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no character body, no environment, no floor decal, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "holo_sniper_spire",
+      "name_ko": "홀로 스나이퍼 스파이어",
+      "name_en": "Holo Sniper Spire",
+      "rarity": "rare",
+      "visual_hook": "elegant black-glass sniper spire with a floating magenta holographic crosshair halo",
+      "signature_palette": "smoked black glass body, silver spine frame, vivid magenta hologram planes, pale lavender lens glow",
+      "special_skill_name_ko": "위크포인트 익스포즈",
+      "special_skill_name_en": "Weakpoint Expose",
+      "status_concept_ko": "약점 노출 / 저격 표식",
+      "status_concept_en": "weakpoint expose / sniper mark",
+      "special_outgoing_effect": {
+        "name_ko": "고스트 마크 빔",
+        "name_en": "Ghost Mark Beam",
+        "purpose": "special skill outgoing / cast",
+        "recommended_composite": "additive",
+        "prompt": "cyberpunk tower defense VFX asset, Holo Sniper Spire special skill outgoing effect, Ghost Mark Beam, a thin magenta holographic beam with a pale lavender core, broken glass-like data shards, tiny floating crosshair fragments, elegant high-precision execution technology feel, long refined silhouette with clear forward motion, effect-only image, single outgoing VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no weapon source, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      },
+      "hit_overlay_effect": {
+        "name_ko": "엑스큐션 크로스헤어",
+        "name_en": "Execution Crosshair",
+        "purpose": "on-hit status overlay around target",
+        "recommended_composite": "additive",
+        "prompt": "cyberpunk tower defense VFX asset, Holo Sniper Spire special hit overlay effect, Execution Crosshair, a vivid magenta holographic crosshair ring wrapped around an invisible enemy body, thin scan lines, floating weak-point diamonds, precise target brackets, elegant assassin-tech readout look, clear open center for compositing over a monster sprite, floating around the target body instead of sitting on the floor, effect-only image, single body-wrap VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no character body, no environment, no floor decal, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "nano_support_beacon",
+      "name_ko": "나노 서포트 비콘",
+      "name_en": "Nano Support Beacon",
+      "rarity": "rare",
+      "visual_hook": "healing support beacon with blooming mechanical petals and orbiting nano capsules",
+      "signature_palette": "pearl white body, emerald energy chamber, soft cyan helper capsules, brushed titanium frame",
+      "special_skill_name_ko": "나노 디스어셈블리",
+      "special_skill_name_en": "Nano Disassembly",
+      "status_concept_ko": "나노 분해 / 방어 약화",
+      "status_concept_en": "nanite disassembly / defense weaken",
+      "special_outgoing_effect": {
+        "name_ko": "나노 디스어셈블리 펄스",
+        "name_en": "Nano Disassembly Pulse",
+        "purpose": "special skill outgoing / cast",
+        "recommended_composite": "additive or screen",
+        "prompt": "cyberpunk tower defense VFX asset, Nano Support Beacon special skill outgoing effect, Nano Disassembly Pulse, an emerald nanite pulse with a luminous green core, small cyan helper capsules spiraling around it, petal-like nano trails, refined support-tech turned into a debuff payload, elegant controlled silhouette, effect-only image, single outgoing VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no weapon source, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      },
+      "hit_overlay_effect": {
+        "name_ko": "디스어셈블리 블룸",
+        "name_en": "Disassembly Bloom",
+        "purpose": "on-hit status overlay around target",
+        "recommended_composite": "screen or mixed",
+        "prompt": "cyberpunk tower defense VFX asset, Nano Support Beacon special hit overlay effect, Disassembly Bloom, a hollow emerald nanite bloom wrapped around an invisible enemy body, crawling microbot lattice, tiny cyan capsules, dissolving panel seams, clean precision deconstruction look rather than healing, clear open center for compositing over a monster sprite, floating around the body and not appearing as a floor aura, effect-only image, single body-wrap VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no character body, no environment, no floor decal, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "gravity_well_emitter",
+      "name_ko": "그래비티 웰 이미터",
+      "name_en": "Gravity Well Emitter",
+      "rarity": "unique",
+      "visual_hook": "experimental gravity engine holding a black orb inside thick gyroscope rings",
+      "signature_palette": "matte obsidian shell, deep indigo ring structure, vivid violet gravity core, dark titanium pedestal",
+      "special_skill_name_ko": "크러시 필드",
+      "special_skill_name_en": "Crush Field",
+      "status_concept_ko": "중력 압박 / 속박",
+      "status_concept_en": "gravity crush / bind",
+      "special_outgoing_effect": {
+        "name_ko": "크러시 시드",
+        "name_en": "Crush Seed",
+        "purpose": "special skill outgoing / cast",
+        "recommended_composite": "additive or screen",
+        "prompt": "cyberpunk tower defense VFX asset, Gravity Well Emitter special skill outgoing effect, Crush Seed, a dense violet gravity orb with a near-black center, bent indigo orbit rings, lens-distortion crescents, compressed space ripples, dangerous experimental singularity-control feel, heavy compact silhouette with obvious forward motion, effect-only image, single outgoing VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no weapon source, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      },
+      "hit_overlay_effect": {
+        "name_ko": "그래비티 프레셔 케이지",
+        "name_en": "Gravity Pressure Cage",
+        "purpose": "on-hit status overlay around target",
+        "recommended_composite": "screen or mixed",
+        "prompt": "cyberpunk tower defense VFX asset, Gravity Well Emitter special hit overlay effect, Gravity Pressure Cage, a hollow violet compression shell wrapped around an invisible enemy body, bent gravity rings, warped light crescents, dense pressure bands, unmistakable crushing-space debuff look, clear open center for compositing over a monster sprite, floating around the body rather than becoming a circular floor field, effect-only image, single body-wrap VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable distorted silhouette, no turret, no monster, no character body, no environment, no floor decal, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "virus_injector",
+      "name_ko": "바이러스 인젝터",
+      "name_en": "Virus Injector",
+      "rarity": "unique",
+      "visual_hook": "asymmetrical sabotage tower with a giant injector arm and toxic code canisters",
+      "signature_palette": "toxic lime canisters, matte black armor, corrupted magenta data glow, dark steel mechanics",
+      "special_skill_name_ko": "코드 오염",
+      "special_skill_name_en": "Code Corruption",
+      "status_concept_ko": "바이러스 감염 / 지속 피해",
+      "status_concept_en": "virus infection / damage over time",
+      "special_outgoing_effect": {
+        "name_ko": "코럽트 니들",
+        "name_en": "Corrupt Needle",
+        "purpose": "special skill outgoing / cast",
+        "recommended_composite": "additive",
+        "prompt": "cyberpunk tower defense VFX asset, Virus Injector special skill outgoing effect, Corrupt Needle, a toxic lime code dart with a sharp syringe-like silhouette, corrupted magenta glitch trail, fragmented digital droplets, malicious sabotage-tech feeling, nasty but readable forward-thrusting shape, effect-only image, single outgoing VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no weapon source, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      },
+      "hit_overlay_effect": {
+        "name_ko": "인펙션 글리프",
+        "name_en": "Infection Glyph",
+        "purpose": "on-hit status overlay around target",
+        "recommended_composite": "additive or mixed",
+        "prompt": "cyberpunk tower defense VFX asset, Virus Injector special hit overlay effect, Infection Glyph, a hollow toxic lime corruption ring wrapped around an invisible enemy body, magenta data spikes, crawling code veins, unstable glitch fragments, unmistakable digital infection debuff look, clear open center for compositing over a monster sprite, floating around the body and not painted on the battlefield, effect-only image, single body-wrap VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no character body, no environment, no floor decal, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "prism_laser_array",
+      "name_ko": "프리즘 레이저 어레이",
+      "name_en": "Prism Laser Array",
+      "rarity": "unique",
+      "visual_hook": "spectral laser crown built from crystal petals around a central lens",
+      "signature_palette": "brushed gold structural frame, translucent rainbow prisms, bright white laser chamber, clean ivory supports",
+      "special_skill_name_ko": "굴절 각인",
+      "special_skill_name_en": "Refraction Brand",
+      "status_concept_ko": "광선 분열 / 프리즘 표식",
+      "status_concept_en": "light split / prism mark",
+      "special_outgoing_effect": {
+        "name_ko": "프리즘 시어 볼트",
+        "name_en": "Prism Shear Bolt",
+        "purpose": "special skill outgoing / cast",
+        "recommended_composite": "additive",
+        "prompt": "cyberpunk tower defense VFX asset, Prism Laser Array special skill outgoing effect, Prism Shear Bolt, a bright white spectral bolt split through translucent rainbow prism blades, fine multicolor rays, elegant crystal refraction geometry, premium high-tech laser crown energy, sharp radiant silhouette, effect-only image, single outgoing VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no weapon source, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      },
+      "hit_overlay_effect": {
+        "name_ko": "스펙트럼 프랙처 헤일로",
+        "name_en": "Spectrum Fracture Halo",
+        "purpose": "on-hit status overlay around target",
+        "recommended_composite": "additive or screen",
+        "prompt": "cyberpunk tower defense VFX asset, Prism Laser Array special hit overlay effect, Spectrum Fracture Halo, a hollow multicolor crystal halo wrapped around an invisible enemy body, floating prism shards, thin rainbow refraction lines, bright white focal points, elegant spectral debuff look, clear open center for compositing over a monster sprite, floating around the target body instead of becoming a decorative floor sigil, effect-only image, single body-wrap VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no character body, no environment, no floor decal, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "chrono_distortion_core",
+      "name_ko": "크로노 디스토션 코어",
+      "name_en": "Chrono Distortion Core",
+      "rarity": "legendary",
+      "visual_hook": "time-engine tower with an hourglass core and concentric clock rings",
+      "signature_palette": "royal blue enamel body, brushed brass rings, pale gold time chamber, clean white chronal glow",
+      "special_skill_name_ko": "타임 록",
+      "special_skill_name_en": "Time Lock",
+      "status_concept_ko": "시간 감속 / 정지",
+      "status_concept_en": "time slow / stasis",
+      "special_outgoing_effect": {
+        "name_ko": "타임 록 펄스",
+        "name_en": "Time Lock Pulse",
+        "purpose": "special skill outgoing / cast",
+        "recommended_composite": "additive or screen",
+        "prompt": "cyberpunk tower defense VFX asset, Chrono Distortion Core special skill outgoing effect, Time Lock Pulse, a blue-gold chronal pulse orb with a pale white center, thin clock-ring echoes, hourglass motes, stretched time ripples, regal advanced temporal-engine feel, clean controlled silhouette with obvious forward movement, effect-only image, single outgoing VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no weapon source, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      },
+      "hit_overlay_effect": {
+        "name_ko": "크로널 샤클 링",
+        "name_en": "Chronal Shackle Ring",
+        "purpose": "on-hit status overlay around target",
+        "recommended_composite": "screen or mixed",
+        "prompt": "cyberpunk tower defense VFX asset, Chrono Distortion Core special hit overlay effect, Chronal Shackle Ring, a hollow blue-gold time ring wrapped around an invisible enemy body, suspended clock ticks, thin temporal chains, hourglass sigils, layered slow-motion ripples, unmistakable stasis debuff look, clear open center for compositing over a monster sprite, floating around the body and not drawn as a ground effect, effect-only image, single body-wrap VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no character body, no environment, no floor decal, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "singularity_cannon",
+      "name_ko": "싱귤래리티 캐논",
+      "name_en": "Singularity Cannon",
+      "rarity": "legendary",
+      "visual_hook": "endgame siege cannon with a huge crescent maw barrel around a red singularity core",
+      "signature_palette": "crimson-black armor plates, molten red singularity chamber, graphite anchor claws, dim ember highlights",
+      "special_skill_name_ko": "그라비마크",
+      "special_skill_name_en": "Gravemark",
+      "status_concept_ko": "중력 붕괴 표식",
+      "status_concept_en": "collapse mark",
+      "special_outgoing_effect": {
+        "name_ko": "그라비마크 시드",
+        "name_en": "Gravemark Seed",
+        "purpose": "special skill outgoing / cast",
+        "recommended_composite": "additive or screen",
+        "prompt": "cyberpunk tower defense VFX asset, Singularity Cannon special skill outgoing effect, Gravemark Seed, a crimson-black singularity seed with a molten red core, crescent maw arcs, dark accretion streaks, brutal endgame siege energy, heavy catastrophic silhouette with clear forward momentum, effect-only image, single outgoing VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no weapon source, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      },
+      "hit_overlay_effect": {
+        "name_ko": "이벤트 호라이즌 칼라",
+        "name_en": "Event Horizon Collar",
+        "purpose": "on-hit status overlay around target",
+        "recommended_composite": "screen or mixed",
+        "prompt": "cyberpunk tower defense VFX asset, Singularity Cannon special hit overlay effect, Event Horizon Collar, a red-black event horizon collar wrapped around an invisible enemy body, violent pull streaks, distorted space crescents, deep crimson gravitational claws, catastrophic collapse debuff look, clear open center for compositing over a monster sprite, floating around the body rather than becoming a battlefield vortex on the floor, effect-only image, single body-wrap VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no character body, no environment, no floor decal, no smoke, no debris, no text, no logo, no watermark"
+      }
+    },
+    {
+      "id": "aegis_ai_citadel",
+      "name_ko": "이지스 AI 시타델",
+      "name_en": "Aegis AI Citadel",
+      "rarity": "legendary",
+      "visual_hook": "legendary fortress tower with shield wings and a central citadel keep",
+      "signature_palette": "ivory armor walls, shield-blue hardlight wings, royal cyan core, dark steel base structure",
+      "special_skill_name_ko": "바스티온 서프레스",
+      "special_skill_name_en": "Bastion Suppress",
+      "status_concept_ko": "억제 봉인 / 하드라이트 구속",
+      "status_concept_en": "suppression seal / hardlight bind",
+      "special_outgoing_effect": {
+        "name_ko": "바스티온 씰 랜스",
+        "name_en": "Bastion Seal Lance",
+        "purpose": "special skill outgoing / cast",
+        "recommended_composite": "additive",
+        "prompt": "cyberpunk tower defense VFX asset, Aegis AI Citadel special skill outgoing effect, Bastion Seal Lance, a shield-blue hardlight lance with a royal-cyan core, folding hex barrier panels, disciplined fortress-grade energy lines, defensive authority turned into a suppression projectile, clean monumental silhouette, effect-only image, single outgoing VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no weapon source, no environment, no floor, no smoke, no debris, no text, no logo, no watermark"
+      },
+      "hit_overlay_effect": {
+        "name_ko": "억제 배리어 케이지",
+        "name_en": "Suppression Barrier Cage",
+        "purpose": "on-hit status overlay around target",
+        "recommended_composite": "additive or screen",
+        "prompt": "cyberpunk tower defense VFX asset, Aegis AI Citadel special hit overlay effect, Suppression Barrier Cage, a shield-blue hardlight cage wrapped around an invisible enemy body, folding hex barrier wings, royal-cyan restraint seams, fortress-grade suppression brackets, unmistakable defensive control debuff look, clear open center for compositing over a monster sprite, floating around the body and not becoming a floor shield, effect-only image, single body-wrap VFX element, centered composition, full effect visible, enough empty margin, pure black background, high contrast glow, readable silhouette, no turret, no monster, no character body, no environment, no floor decal, no smoke, no debris, no text, no logo, no watermark"
+      }
+    }
+  ]
+}

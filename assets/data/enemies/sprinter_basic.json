@@ -1,0 +1,8 @@
+﻿{
+  "id": "sprinter_basic",
+  "nameKey": "enemy.sprinter.name",
+  "archetype": "normal",
+  "hp": 40,
+  "speed": 70,
+  "rewardBattleGold": 10
+}

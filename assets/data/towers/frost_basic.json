@@ -1,0 +1,35 @@
+﻿{
+    "id":  "frost_basic",
+    "nameKey":  "tower.frost.name",
+    "descKey":  "tower.frost.desc",
+    "rarity":  "rare",
+    "baseDamage":  16,
+    "fireRate":  0.95,
+    "range":  110,
+    "attackType":  "projectile",
+    "projectileSpeed":  640,
+    "projectileSize":  20,
+    "buildCost":  110,
+    "upgradeCostBase":  90,
+    "upgradeCostMultiplier":  0.65,
+    "sellRefundRate":  0.75,
+    "unlockShards":  20,
+    "levelUpShardsBase":  15,
+    "levelUpShardsMultiplier":  1.33,
+    "ultimateChance":  0.09,
+    "ultimateDamageMultiplier":  2.2,
+    "effects":  [
+                    {
+                        "type":  "freeze",
+                        "durationSec":  0.8,
+                        "chance":  0.38,
+                        "atLevel":  1
+                    },
+                    {
+                        "type":  "freeze",
+                        "durationSec":  1.15,
+                        "chance":  0.55,
+                        "atLevel":  7
+                    }
+                ]
+}

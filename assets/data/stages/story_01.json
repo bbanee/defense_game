@@ -1,0 +1,18 @@
+﻿{
+  "id": "story_01",
+  "mapId": "map_01",
+  "modeId": "story_defense",
+  "energyCost": 5,
+  "reward": {
+    "accountGold": 120,
+    "towerShard": 5
+  },
+  "allowedDifficulties": ["easy", "normal", "hard"],
+  "waveIds": ["wave_01", "wave_02"],
+  "generatedWavePrefixes": {
+    "easy": "wave_easy_",
+    "normal": "wave_normal_",
+    "hard": "wave_hard_"
+  },
+  "generatedWaveCount": 50
+}

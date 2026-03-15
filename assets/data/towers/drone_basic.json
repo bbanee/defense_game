@@ -1,0 +1,36 @@
+﻿{
+    "id":  "drone_basic",
+    "nameKey":  "tower.drone.name",
+    "descKey":  "tower.drone.desc",
+    "rarity":  "rare",
+    "baseDamage":  13,
+    "fireRate":  1.45,
+    "range":  98,
+    "attackType":  "projectile",
+    "projectileSpeed":  620,
+    "projectileSize":  18,
+    "buildCost":  110,
+    "upgradeCostBase":  90,
+    "upgradeCostMultiplier":  0.65,
+    "sellRefundRate":  0.75,
+    "unlockShards":  20,
+    "levelUpShardsBase":  14,
+    "levelUpShardsMultiplier":  1.31,
+    "ultimateChance":  0.09,
+    "ultimateDamageMultiplier":  2.2,
+    "effects":  [
+                    {
+                        "type":  "attack_weaken",
+                        "value":  0.28,
+                        "durationSec":  3.0,
+                        "atLevel":  1
+                    },
+                    {
+                        "type":  "attack_weaken",
+                        "value":  0.42,
+                        "durationSec":  3.5,
+                        "chance":  0.35,
+                        "atLevel":  7
+                    }
+                ]
+}

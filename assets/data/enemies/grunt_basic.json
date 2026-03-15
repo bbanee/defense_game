@@ -1,0 +1,8 @@
+﻿{
+  "id": "grunt_basic",
+  "nameKey": "enemy.grunt.name",
+  "archetype": "normal",
+  "hp": 60,
+  "speed": 45,
+  "rewardBattleGold": 8
+}

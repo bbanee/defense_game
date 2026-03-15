@@ -1,0 +1,8 @@
+﻿{
+  "id": "tank_basic",
+  "nameKey": "enemy.tank.name",
+  "archetype": "normal",
+  "hp": 140,
+  "speed": 30,
+  "rewardBattleGold": 18
+}

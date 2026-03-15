@@ -1,0 +1,36 @@
+﻿{
+    "id":  "infection_basic",
+    "nameKey":  "tower.infection.name",
+    "descKey":  "tower.infection.desc",
+    "rarity":  "rare",
+    "baseDamage":  15,
+    "fireRate":  0.95,
+    "range":  108,
+    "attackType":  "hitscan",
+    "projectileSpeed":  0,
+    "projectileSize":  0,
+    "buildCost":  125,
+    "upgradeCostBase":  105,
+    "upgradeCostMultiplier":  0.65,
+    "sellRefundRate":  0.75,
+    "unlockShards":  20,
+    "levelUpShardsBase":  16,
+    "levelUpShardsMultiplier":  1.32,
+    "ultimateChance":  0.09,
+    "ultimateDamageMultiplier":  2.2,
+    "effects":  [
+                    {
+                        "type":  "dot",
+                        "value":  9,
+                        "durationSec":  2.6,
+                        "atLevel":  1
+                    },
+                    {
+                        "type":  "dot",
+                        "value":  15,
+                        "durationSec":  3.2,
+                        "chance":  0.32,
+                        "atLevel":  7
+                    }
+                ]
+}

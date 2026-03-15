@@ -1,0 +1,16 @@
+{
+  "id": "endless_01",
+  "mapId": "map_01",
+  "modeId": "endless_survival",
+  "energyCost": 5,
+  "reward": {
+    "accountGold": 0,
+    "towerShard": 0
+  },
+  "allowedDifficulties": ["endless"],
+  "waveIds": ["wave_01", "wave_02"],
+  "generatedWavePrefixes": {
+    "endless": "wave_endless_"
+  },
+  "generatedWaveCount": 50
+}
