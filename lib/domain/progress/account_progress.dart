@@ -49,6 +49,8 @@ class AccountProgress {
   int maxEnergy;
   int bestInfiniteWave;
   String? _lastEnergyAtIso;
+  String? _lastAttendanceDate;
+  int? _attendanceDay;
   int? _shardDrawTickets;
   String? _shardDrawDailyDate;
   int? _shardDrawSingleDailyCount;
@@ -65,6 +67,10 @@ class AccountProgress {
   set shardDrawTickets(int value) => _shardDrawTickets = value;
   String get lastEnergyAtIso => _lastEnergyAtIso ?? '';
   set lastEnergyAtIso(String value) => _lastEnergyAtIso = value;
+  String get lastAttendanceDate => _lastAttendanceDate ?? '';
+  set lastAttendanceDate(String value) => _lastAttendanceDate = value;
+  int get attendanceDay => _attendanceDay ?? 0;
+  set attendanceDay(int value) => _attendanceDay = value;
   String get shardDrawDailyDate => _shardDrawDailyDate ?? '';
   set shardDrawDailyDate(String value) => _shardDrawDailyDate = value;
   int get shardDrawSingleDailyCount => _shardDrawSingleDailyCount ?? 0;
@@ -85,6 +91,8 @@ class AccountProgress {
     this.maxEnergy = 20,
     this.bestInfiniteWave = 0,
     String? lastEnergyAtIso = '',
+    String? lastAttendanceDate = '',
+    int? attendanceDay = 0,
     int? shardDrawTickets = 0,
     String? shardDrawDailyDate = '',
     int? shardDrawSingleDailyCount = 0,
@@ -98,6 +106,8 @@ class AccountProgress {
     CoreProgress? core,
   })  : _shardDrawTickets = shardDrawTickets ?? 0,
         _lastEnergyAtIso = lastEnergyAtIso ?? '',
+        _lastAttendanceDate = lastAttendanceDate ?? '',
+        _attendanceDay = attendanceDay ?? 0,
         _shardDrawDailyDate = shardDrawDailyDate ?? '',
         _shardDrawSingleDailyCount = shardDrawSingleDailyCount ?? 0,
         _shardDrawTenDailyCount = shardDrawTenDailyCount ?? 0,
@@ -139,6 +149,8 @@ class AccountProgress {
       maxEnergy: json['maxEnergy'] as int? ?? 20,
       bestInfiniteWave: json['bestInfiniteWave'] as int? ?? 0,
       lastEnergyAtIso: json['lastEnergyAtIso'] as String? ?? '',
+      lastAttendanceDate: json['lastAttendanceDate'] as String? ?? '',
+      attendanceDay: json['attendanceDay'] as int? ?? 0,
       shardDrawTickets: json['shardDrawTickets'] as int? ?? 0,
       shardDrawDailyDate: json['shardDrawDailyDate'] as String? ?? '',
       shardDrawSingleDailyCount: json['shardDrawSingleDailyCount'] as int? ?? 0,
@@ -161,6 +173,8 @@ class AccountProgress {
       'maxEnergy': maxEnergy,
       'bestInfiniteWave': bestInfiniteWave,
       'lastEnergyAtIso': lastEnergyAtIso,
+      'lastAttendanceDate': lastAttendanceDate,
+      'attendanceDay': attendanceDay,
       'shardDrawTickets': shardDrawTickets,
       'shardDrawDailyDate': shardDrawDailyDate,
       'shardDrawSingleDailyCount': shardDrawSingleDailyCount,
@@ -195,6 +209,8 @@ class AccountProgress {
       maxEnergy: maxEnergy,
       bestInfiniteWave: bestInfiniteWave,
       lastEnergyAtIso: lastEnergyAtIso,
+      lastAttendanceDate: lastAttendanceDate,
+      attendanceDay: attendanceDay,
       shardDrawTickets: shardDrawTickets,
       shardDrawDailyDate: shardDrawDailyDate,
       shardDrawSingleDailyCount: shardDrawSingleDailyCount,

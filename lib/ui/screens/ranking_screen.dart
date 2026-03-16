@@ -61,7 +61,15 @@ class _RankingScreenState extends State<RankingScreen> {
                     ...stageList.asMap().entries.map((e) {
                       final index = e.key + 1;
                       final item = e.value;
-                      return _rankRow(_RankEntry(rank: index, name: item.name, score: item.score));
+                      return _rankRow(
+                        _RankEntry(
+                          rank: index,
+                          name: item.name,
+                          value: item.score,
+                          suffix: '웨이브',
+                          detail: item.detail,
+                        ),
+                      );
                     }).toList(),
                 ] else ...[
                   if (infiniteList.isEmpty)
@@ -70,7 +78,15 @@ class _RankingScreenState extends State<RankingScreen> {
                     ...infiniteList.asMap().entries.map((e) {
                       final index = e.key + 1;
                       final item = e.value;
-                      return _rankRow(_RankEntry(rank: index, name: item.name, score: item.score));
+                      return _rankRow(
+                        _RankEntry(
+                          rank: index,
+                          name: item.name,
+                          value: item.score,
+                          suffix: '점',
+                          detail: item.detail,
+                        ),
+                      );
                     }).toList(),
                 ],
               ],
@@ -141,7 +157,9 @@ class _RankingScreenState extends State<RankingScreen> {
         children: [
           Text('#${entry.rank}  ${entry.name}', style: const TextStyle(color: Color(0xFFF3F7FF))),
           Text(
-            '${entry.score}',
+            entry.detail == null || entry.detail!.isEmpty
+                ? '${entry.value}${entry.suffix}'
+                : '${entry.value}${entry.suffix} (${entry.detail})',
             style: const TextStyle(
               color: Color(0xFFD9E7FF),
               fontWeight: FontWeight.w700,
@@ -246,7 +264,15 @@ class DebugRankingSeedScreen extends StatelessWidget {
 class _RankEntry {
   final int rank;
   final String name;
-  final int score;
+  final int value;
+  final String suffix;
+  final String? detail;
 
-  const _RankEntry({required this.rank, required this.name, required this.score});
+  const _RankEntry({
+    required this.rank,
+    required this.name,
+    required this.value,
+    required this.suffix,
+    this.detail,
+  });
 }

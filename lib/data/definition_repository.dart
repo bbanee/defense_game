@@ -82,6 +82,11 @@ class DefinitionRepository {
     return loader.loadObject('assets/data/lobby_upgrades/default_player_state.json');
   }
 
+  Future<List<Map<String, dynamic>>> loadAttendanceRewards() async {
+    final list = await loader.loadList('assets/data/attendance_rewards.json');
+    return list.whereType<Map<String, dynamic>>().toList(growable: false);
+  }
+
   Future<Map<String, dynamic>> _loadWaveOverrides() {
     _waveOverridesFuture ??= _safeLoadWaveOverrides();
     return _waveOverridesFuture!;

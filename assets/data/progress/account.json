@@ -4,6 +4,8 @@
   "energy": 20,
   "maxEnergy": 20,
   "lastEnergyAtIso": "",
+  "lastAttendanceDate": "",
+  "attendanceDay": 0,
   "shardDrawTickets": 20,
   "shardDrawDailyDate": "",
   "shardDrawSingleDailyCount": 0,

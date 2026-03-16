@@ -2,6 +2,7 @@
 
 class TowerDefenseGame extends FlameGame with TapCallbacks {
   static const int maxPlacedTowers = 10;
+  static const bool showDebugUi = false;
   final VoidCallback? onExitToLobby;
   final String difficultyId;
   final String stageId;
@@ -49,6 +50,8 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
   double coreDefenseRate = 0;
   bool defeated = false;
   ResultOverlay? resultOverlay;
+  ContinueOverlay? continueOverlay;
+  SpeedAdOverlay? speedAdOverlay;
   int battleGold = 200;
   int accountGold = 0;
   bool waveClearRewarded = false;
@@ -70,12 +73,15 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
   bool endRewardsDoubled = false;
   int endRewardGold = 0;
   int endRewardTickets = 0;
+  bool stageRankingSaved = false;
   int enemyKillScore = 0;
   int highestPlacedTowerCount = 0;
   int infiniteWaveNumber = 1;
   int finalInfiniteScore = 0;
   bool infiniteScoreSaved = false;
   bool resultActionPending = false;
+  bool continueUsed = false;
+  bool adSpeedUnlocked = false;
 
   TowerPicker? picker;
   TowerActionPanel? towerPanel;
@@ -214,23 +220,33 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
   @override
   void update(double dt) {
     final scaledDt = dt * timeScale;
-    visualFxTime += scaledDt;
+    const maxStep = 1 / 30;
+    var remaining = scaledDt;
+    while (remaining > 0) {
+      final step = math.min(remaining, maxStep);
+      _updateSimulationStep(step);
+      remaining -= step;
+    }
+  }
+
+  void _updateSimulationStep(double dt) {
+    visualFxTime += dt;
     if (buildLimitNoticeCooldown > 0) {
       buildLimitNoticeCooldown =
-          (buildLimitNoticeCooldown - scaledDt).clamp(0.0, double.infinity);
+          (buildLimitNoticeCooldown - dt).clamp(0.0, double.infinity);
     }
-    super.update(scaledDt);
+    super.update(dt);
     if (debugInfiniteGold) {
       battleGold = 999999;
     }
     for (final tower in towers.values) {
-      tower.updateTower(scaledDt, enemies);
+      tower.updateTower(dt, enemies);
     }
 
     enemies.removeWhere((enemy) => enemy.isRemoved);
 
     if (spawner.isFinished) {
-      waveAdvanceDelayTimer += scaledDt;
+      waveAdvanceDelayTimer += dt;
     } else {
       waveAdvanceDelayTimer = 0;
     }
@@ -257,6 +273,22 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
   @override
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
+    if (continueOverlay != null) {
+      final action = continueOverlay?.hitTest(event.canvasPosition);
+      if (action != null && !resultActionPending) {
+        resultActionPending = true;
+        unawaited(_handleContinueOverlayAction(action));
+      }
+      return;
+    }
+    if (speedAdOverlay != null) {
+      final action = speedAdOverlay?.hitTest(event.canvasPosition);
+      if (action != null && !resultActionPending) {
+        resultActionPending = true;
+        unawaited(_handleSpeedAdOverlayAction(action));
+      }
+      return;
+    }
     if (defeated || victory) {
       final action = resultOverlay?.hitTest(event.canvasPosition);
       if (action != null && !resultActionPending) {
@@ -265,7 +297,7 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
       }
       return;
     }
-    if (hud.hitDebugButton(event.canvasPosition)) {
+    if (showDebugUi && hud.hitDebugButton(event.canvasPosition)) {
       debugOpen = !debugOpen;
       debugInfiniteWaves = debugOpen;
       debugInfiniteCore = debugOpen;
@@ -289,7 +321,16 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
       _closeTowerPanel();
       return;
     }
-    if (debugOpen && hud.hitDebugPanel(pos, this)) {
+    if (showDebugUi && debugOpen && hud.hitDebugPanel(pos, this)) {
+      return;
+    }
+    if (hud.hitSpeedButton(pos)) {
+      if (adSpeedUnlocked) {
+        _toggleSpeed();
+      } else {
+        speedAdOverlay = SpeedAdOverlay(gameRef: this);
+        add(speedAdOverlay!);
+      }
       return;
     }
 
@@ -582,26 +623,15 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
   }
 
   void _onDefeat() {
-    if (defeated) return;
+    if (defeated || continueOverlay != null) return;
     defeated = true;
-    if (isInfiniteMode) {
-      finalInfiniteScore = _calculateInfiniteScore();
-      unawaited(_saveInfiniteScoreIfNeeded());
-    } else {
-      unawaited(_grantEndRewardsIfNeeded());
-    }
-    for (final enemy in enemies) {
-      enemy.removeFromParent();
-    }
-    enemies.clear();
     spawner.pauseSpawning();
-    resultOverlay = ResultOverlay(
-      gameRef: this,
-      title: '패배',
-      subtitle: '코어가 파괴되었습니다',
-      onExit: onExitToLobby,
-    );
-    add(resultOverlay!);
+    if (!isInfiniteMode && !continueUsed) {
+      continueOverlay = ContinueOverlay(gameRef: this);
+      add(continueOverlay!);
+      return;
+    }
+    _showDefeatResult();
   }
 
   void addBattleGold(int amount) {
@@ -683,6 +713,59 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
       onExit: onExitToLobby,
     );
     add(resultOverlay!);
+  }
+
+  void _showDefeatResult() {
+    defeated = true;
+    for (final enemy in enemies) {
+      enemy.removeFromParent();
+    }
+    enemies.clear();
+    if (isInfiniteMode) {
+      finalInfiniteScore = _calculateInfiniteScore();
+      unawaited(_saveInfiniteScoreIfNeeded());
+    } else {
+      unawaited(_grantEndRewardsIfNeeded());
+    }
+    resultOverlay = ResultOverlay(
+      gameRef: this,
+      title: '패배',
+      subtitle: '코어가 파괴되었습니다',
+      onExit: onExitToLobby,
+    );
+    add(resultOverlay!);
+  }
+
+  void _continueFromDefeat() {
+    continueUsed = true;
+    continueOverlay?.removeFromParent();
+    continueOverlay = null;
+    for (final enemy in enemies) {
+      enemy.removeFromParent();
+    }
+    enemies.clear();
+    coreHp = coreMaxHp;
+    coreShield = coreMaxShield;
+    core.setStats(coreHp, coreMaxHp, coreShield, coreMaxShield);
+    defeated = false;
+    waveClearRewarded = false;
+    waveAdvanceDelayTimer = 0;
+    spawner.resetWith(waves[currentWaveIndex]);
+    spawnBattleNotice('광고 컨티뉴: 현재 웨이브 재시작');
+  }
+
+  Future<void> _handleSpeedAdOverlayAction(SpeedAdOverlayAction action) async {
+    try {
+      if (action == SpeedAdOverlayAction.unlockAd) {
+        adSpeedUnlocked = true;
+        timeScale = 2.0;
+        spawnBattleNotice('광고 보상: 2배속 사용 가능');
+      }
+      speedAdOverlay?.removeFromParent();
+      speedAdOverlay = null;
+    } finally {
+      resultActionPending = false;
+    }
   }
 
   ({int gold, int tickets}) _calculateEndRewards() {
@@ -783,6 +866,29 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     await AccountProgressRepository().save(accountProgress);
   }
 
+  Future<void> _saveStageRankingIfNeeded() async {
+    if (isInfiniteMode || stageRankingSaved || stageDef.id == 'test_u_stage') {
+      return;
+    }
+    stageRankingSaved = true;
+    final reached = (currentWaveIndex + 1).clamp(0, waves.length);
+    if (reached <= 0) {
+      return;
+    }
+    final difficultyLabel = switch (difficultyId) {
+      'easy' => '이지',
+      'normal' => '노말',
+      'hard' => '하드',
+      'nightmare' => '나이트메어',
+      _ => difficultyId,
+    };
+    await RankingRepository().addStageScore(
+      'PLAYER',
+      reached,
+      detail: difficultyLabel,
+    );
+  }
+
   Future<void> _doubleEndRewards() async {
     await _grantEndRewardsIfNeeded();
     if (endRewardsDoubled || !endRewardsGranted) {
@@ -820,12 +926,24 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
       onExitToLobby?.call();
       return;
     }
+    await _saveStageRankingIfNeeded();
     if (action == ResultOverlayAction.doubleReward) {
       await _doubleEndRewards();
     } else {
       await _grantEndRewardsIfNeeded();
     }
     onExitToLobby?.call();
+  }
+
+  Future<void> _handleContinueOverlayAction(ContinueOverlayAction action) async {
+    if (action == ContinueOverlayAction.continueAd) {
+      _continueFromDefeat();
+    } else {
+      continueOverlay?.removeFromParent();
+      continueOverlay = null;
+      _showDefeatResult();
+    }
+    resultActionPending = false;
   }
 }
 

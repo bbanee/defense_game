@@ -817,6 +817,7 @@ class SpawnController extends Component {
     index = 0;
     remainingInEntry = 0;
     nextSpawnAt = 0;
+    paused = false;
     _recalculateRemaining();
   }
 

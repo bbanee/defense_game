@@ -1,6 +1,407 @@
 ﻿part of 'tower_defense_game.dart';
 
 enum ResultOverlayAction { doubleReward, close }
+enum ContinueOverlayAction { continueAd, giveUp }
+enum SpeedAdOverlayAction { unlockAd, close }
+
+class ContinueOverlay extends PositionComponent {
+  final TowerDefenseGame gameRef;
+  Rect? _continueButtonRect;
+  Rect? _giveUpButtonRect;
+
+  ContinueOverlay({required this.gameRef}) {
+    priority = 4900;
+  }
+
+  @override
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    this.size = size;
+    position = Vector2.zero();
+    final center = size / 2;
+    final buttonY = center.y + 58;
+    _continueButtonRect = Rect.fromCenter(
+      center: Offset(center.x - 58, buttonY),
+      width: 108,
+      height: 34,
+    );
+    _giveUpButtonRect = Rect.fromCenter(
+      center: Offset(center.x + 58, buttonY),
+      width: 108,
+      height: 34,
+    );
+  }
+
+  @override
+  void render(Canvas canvas) {
+    _ensureRects();
+    final bgPaint = Paint()..color = const Color(0xCC000000);
+    canvas.drawRect(size.toRect(), bgPaint);
+
+    final panelRect = Rect.fromCenter(
+      center: Offset(size.x / 2, size.y / 2),
+      width: 312,
+      height: 188,
+    );
+    final panelPaint = Paint()..color = const Color(0xFF111827);
+    final panelBorder = Paint()
+      ..color = const Color(0xFF39A7FF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(panelRect, const Radius.circular(10)),
+      panelPaint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(panelRect, const Radius.circular(10)),
+      panelBorder,
+    );
+
+    _renderCenteredText(
+      canvas,
+      '컨티뉴',
+      Offset(panelRect.center.dx, panelRect.top + 22),
+      const TextStyle(
+        color: Color(0xFFF7FBFF),
+        fontSize: 28,
+        fontWeight: FontWeight.w900,
+      ),
+    );
+    _renderCenteredText(
+      canvas,
+      '광고를 보고 현재 웨이브를 다시 시작합니다.',
+      Offset(panelRect.center.dx, panelRect.top + 68),
+      const TextStyle(
+        color: Color(0xFFD5E6FF),
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+    _renderCenteredText(
+      canvas,
+      '현재 화면의 적은 제거되고 코어가 회복됩니다.',
+      Offset(panelRect.center.dx, panelRect.top + 90),
+      const TextStyle(
+        color: Color(0xFFA8C8F5),
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+
+    _renderButton(
+      canvas,
+      Vector2(panelRect.center.dx - 58, panelRect.top + 150),
+      '광고보고 계속',
+      fillColor: const Color(0xFF12324A),
+      borderColor: const Color(0xFF49C2FF),
+      width: 108,
+      height: 34,
+    );
+    _renderButton(
+      canvas,
+      Vector2(panelRect.center.dx + 58, panelRect.top + 150),
+      '포기하기',
+      fillColor: const Color(0xFF1B1F2A),
+      borderColor: Colors.white,
+      width: 108,
+      height: 34,
+    );
+  }
+
+  void _renderCenteredText(
+    Canvas canvas,
+    String text,
+    Offset topCenter,
+    TextStyle style,
+  ) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    )..layout(maxWidth: 240);
+    painter.paint(
+      canvas,
+      Offset(topCenter.dx - painter.width / 2, topCenter.dy),
+    );
+  }
+
+  void _renderButton(
+    Canvas canvas,
+    Vector2 center,
+    String label, {
+    required Color fillColor,
+    required Color borderColor,
+    required double width,
+    required double height,
+  }) {
+    final rect = Rect.fromCenter(
+      center: Offset(center.x, center.y),
+      width: width,
+      height: height,
+    );
+    final paint = Paint()..color = fillColor;
+    final border = Paint()
+      ..color = borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, const Radius.circular(6)),
+      paint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, const Radius.circular(6)),
+      border,
+    );
+    _renderCenteredTextInRect(
+      canvas,
+      label,
+      rect,
+      const TextStyle(
+        color: Colors.white,
+        fontSize: 13,
+        fontWeight: FontWeight.w800,
+      ),
+    );
+  }
+
+  void _renderCenteredTextInRect(
+    Canvas canvas,
+    String text,
+    Rect rect,
+    TextStyle style,
+  ) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    )..layout(maxWidth: rect.width - 8);
+    painter.paint(
+      canvas,
+      Offset(
+        rect.left + (rect.width - painter.width) / 2,
+        rect.top + (rect.height - painter.height) / 2,
+      ),
+    );
+  }
+
+  ContinueOverlayAction? hitTest(Vector2 worldPos) {
+    _ensureRects();
+    final offset = Offset(worldPos.x, worldPos.y);
+    if (_continueButtonRect?.contains(offset) ?? false) {
+      return ContinueOverlayAction.continueAd;
+    }
+    if (_giveUpButtonRect?.contains(offset) ?? false) {
+      return ContinueOverlayAction.giveUp;
+    }
+    return null;
+  }
+
+  void _ensureRects() {
+    if (_continueButtonRect != null && _giveUpButtonRect != null) {
+      return;
+    }
+    final currentSize = gameRef.size;
+    if (currentSize.x <= 0 || currentSize.y <= 0) {
+      return;
+    }
+    onGameResize(currentSize);
+  }
+}
+
+class SpeedAdOverlay extends PositionComponent {
+  final TowerDefenseGame gameRef;
+  Rect? _unlockButtonRect;
+  Rect? _closeButtonRect;
+
+  SpeedAdOverlay({required this.gameRef}) {
+    priority = 4850;
+  }
+
+  @override
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    this.size = size;
+    position = Vector2.zero();
+    final center = size / 2;
+    final buttonY = center.y + 54;
+    _unlockButtonRect = Rect.fromCenter(
+      center: Offset(center.x - 58, buttonY),
+      width: 108,
+      height: 34,
+    );
+    _closeButtonRect = Rect.fromCenter(
+      center: Offset(center.x + 58, buttonY),
+      width: 108,
+      height: 34,
+    );
+  }
+
+  @override
+  void render(Canvas canvas) {
+    _ensureRects();
+    final bgPaint = Paint()..color = const Color(0xCC000000);
+    canvas.drawRect(size.toRect(), bgPaint);
+
+    final panelRect = Rect.fromCenter(
+      center: Offset(size.x / 2, size.y / 2),
+      width: 312,
+      height: 180,
+    );
+    final panelPaint = Paint()..color = const Color(0xFF111827);
+    final panelBorder = Paint()
+      ..color = const Color(0xFF39A7FF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(panelRect, const Radius.circular(10)),
+      panelPaint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(panelRect, const Radius.circular(10)),
+      panelBorder,
+    );
+
+    _renderCenteredText(
+      canvas,
+      '2배속',
+      Offset(panelRect.center.dx, panelRect.top + 22),
+      const TextStyle(
+        color: Color(0xFFF7FBFF),
+        fontSize: 28,
+        fontWeight: FontWeight.w900,
+      ),
+    );
+    _renderCenteredText(
+      canvas,
+      '광고를 보고 이번 전투에서 2배속을 사용합니다.',
+      Offset(panelRect.center.dx, panelRect.top + 68),
+      const TextStyle(
+        color: Color(0xFFD5E6FF),
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+    _renderCenteredText(
+      canvas,
+      '광고를 보면 이번 판 동안 1x / 2x 전환이 가능합니다.',
+      Offset(panelRect.center.dx, panelRect.top + 90),
+      const TextStyle(
+        color: Color(0xFFA8C8F5),
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+
+    _renderButton(
+      canvas,
+      Vector2(panelRect.center.dx - 58, panelRect.top + 146),
+      '광고보고 사용',
+      fillColor: const Color(0xFF12324A),
+      borderColor: const Color(0xFF49C2FF),
+      width: 108,
+      height: 34,
+    );
+    _renderButton(
+      canvas,
+      Vector2(panelRect.center.dx + 58, panelRect.top + 146),
+      '닫기',
+      fillColor: const Color(0xFF1B1F2A),
+      borderColor: Colors.white,
+      width: 108,
+      height: 34,
+    );
+  }
+
+  void _renderCenteredText(
+    Canvas canvas,
+    String text,
+    Offset topCenter,
+    TextStyle style,
+  ) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    )..layout(maxWidth: 250);
+    painter.paint(
+      canvas,
+      Offset(topCenter.dx - painter.width / 2, topCenter.dy),
+    );
+  }
+
+  void _renderButton(
+    Canvas canvas,
+    Vector2 center,
+    String label, {
+    required Color fillColor,
+    required Color borderColor,
+    required double width,
+    required double height,
+  }) {
+    final rect = Rect.fromCenter(
+      center: Offset(center.x, center.y),
+      width: width,
+      height: height,
+    );
+    final paint = Paint()..color = fillColor;
+    final border = Paint()
+      ..color = borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, const Radius.circular(6)),
+      paint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, const Radius.circular(6)),
+      border,
+    );
+    final painter = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    )..layout(maxWidth: rect.width - 8);
+    painter.paint(
+      canvas,
+      Offset(
+        rect.left + (rect.width - painter.width) / 2,
+        rect.top + (rect.height - painter.height) / 2,
+      ),
+    );
+  }
+
+  SpeedAdOverlayAction? hitTest(Vector2 worldPos) {
+    _ensureRects();
+    final offset = Offset(worldPos.x, worldPos.y);
+    if (_unlockButtonRect?.contains(offset) ?? false) {
+      return SpeedAdOverlayAction.unlockAd;
+    }
+    if (_closeButtonRect?.contains(offset) ?? false) {
+      return SpeedAdOverlayAction.close;
+    }
+    return null;
+  }
+
+  void _ensureRects() {
+    if (_unlockButtonRect != null && _closeButtonRect != null) {
+      return;
+    }
+    final currentSize = gameRef.size;
+    if (currentSize.x <= 0 || currentSize.y <= 0) {
+      return;
+    }
+    onGameResize(currentSize);
+  }
+}
 
 class ResultOverlay extends PositionComponent {
   final TowerDefenseGame gameRef;
@@ -290,10 +691,14 @@ class ResultOverlay extends PositionComponent {
     String label, {
     required Color fillColor,
     required Color borderColor,
+    double width = 96.0,
+    double height = 30.0,
   }) {
-    final w = 96.0;
-    final h = 30.0;
-    final rect = Rect.fromCenter(center: Offset(center.x, center.y), width: w, height: h);
+    final rect = Rect.fromCenter(
+      center: Offset(center.x, center.y),
+      width: width,
+      height: height,
+    );
     final paint = Paint()..color = fillColor;
     final border = Paint()
       ..color = borderColor
@@ -373,6 +778,7 @@ class BattleHud extends PositionComponent {
   final TowerDefenseGame gameRef;
   Rect? _debugButtonRect;
   Rect? _debugPanelRect;
+  Rect? _speedButtonRect;
 
   BattleHud({required this.gameRef}) {
     priority = 1200;
@@ -385,18 +791,20 @@ class BattleHud extends PositionComponent {
     position = Vector2.zero();
     _debugButtonRect = Rect.fromLTWH(size.x - 34, 50, 26, 22);
     _debugPanelRect = Rect.fromLTWH(size.x - 200, 72, 190, 17 * 24 + 8);
+    _speedButtonRect = Rect.fromLTWH(size.x - 52, 6, 44, 32);
   }
 
   @override
   void render(Canvas canvas) {
     const barHeight = 46.0;
+    const speedButtonWidth = 44.0;
     final bg = Paint()..color = const Color(0xCC08111B);
     final edgeGlow = Paint()..color = const Color(0x6618D2FF);
     canvas.drawRect(Rect.fromLTWH(0, 0, size.x, barHeight), bg);
     canvas.drawRect(Rect.fromLTWH(0, barHeight - 1.2, size.x, 1.2), edgeGlow);
 
     const gap = 8.0;
-    final cardWidth = (size.x - (gap * 4)) / 3;
+    final cardWidth = (size.x - speedButtonWidth - (gap * 5)) / 3;
     final top = 6.0;
     _renderHudCard(
       canvas,
@@ -423,25 +831,68 @@ class BattleHud extends PositionComponent {
       trailing: '${gameRef.towers.length}/${TowerDefenseGame.maxPlacedTowers}',
     );
 
-    final ruleBg = Paint()..color = const Color(0xFF1B1F2A);
-    final ruleBorder = Paint()
-      ..color = const Color(0xFF2B7FFF)
+    final speedRect =
+        _speedButtonRect ?? Rect.fromLTWH(size.x - 52, 6, 44, 32);
+    final speedFill = Paint()
+      ..color = gameRef.adSpeedUnlocked
+          ? const Color(0xCC12324A)
+          : const Color(0xCC1B1F2A);
+    final speedBorder = Paint()
+      ..color = gameRef.adSpeedUnlocked
+          ? const Color(0xFF49C2FF)
+          : const Color(0xFF8AA4C8)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-    final ruleText = TextPaint(
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 11,
-        fontWeight: FontWeight.bold,
+      ..strokeWidth = 1.15;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(speedRect, const Radius.circular(8)),
+      speedFill,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(speedRect, const Radius.circular(8)),
+      speedBorder,
+    );
+    _renderCenteredTextInRect(
+      canvas,
+      gameRef.adSpeedUnlocked
+          ? (gameRef.timeScale >= 1.5 ? '2x' : '1x')
+          : 'x2',
+      speedRect,
+      TextStyle(
+        color: gameRef.adSpeedUnlocked
+            ? const Color(0xFFF8FBFF)
+            : const Color(0xFFD7E7FF),
+        fontSize: 13,
+        fontWeight: FontWeight.w900,
       ),
     );
-    final dbg = _debugButtonRect ?? Rect.fromLTWH(size.x - 34, 32, 26, 22);
-    canvas.drawRRect(RRect.fromRectAndRadius(dbg, const Radius.circular(6)), ruleBg);
-    canvas.drawRRect(RRect.fromRectAndRadius(dbg, const Radius.circular(6)), ruleBorder);
-    ruleText.render(canvas, 'DBG', Vector2(dbg.left + 2, dbg.top + 4));
 
-    if (gameRef.debugOpen) {
-      _renderDebugPanel(canvas);
+    if (TowerDefenseGame.showDebugUi) {
+      final ruleBg = Paint()..color = const Color(0xFF1B1F2A);
+      final ruleBorder = Paint()
+        ..color = const Color(0xFF2B7FFF)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2;
+      final ruleText = TextPaint(
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+      final dbg = _debugButtonRect ?? Rect.fromLTWH(size.x - 34, 32, 26, 22);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(dbg, const Radius.circular(6)),
+        ruleBg,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(dbg, const Radius.circular(6)),
+        ruleBorder,
+      );
+      ruleText.render(canvas, 'DBG', Vector2(dbg.left + 2, dbg.top + 4));
+
+      if (gameRef.debugOpen) {
+        _renderDebugPanel(canvas);
+      }
     }
   }
 
@@ -537,12 +988,39 @@ class BattleHud extends PositionComponent {
     return buffer.toString();
   }
 
+  void _renderCenteredTextInRect(
+    Canvas canvas,
+    String text,
+    Rect rect,
+    TextStyle style,
+  ) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    )..layout(maxWidth: rect.width - 8);
+    painter.paint(
+      canvas,
+      Offset(
+        rect.left + (rect.width - painter.width) / 2,
+        rect.top + (rect.height - painter.height) / 2,
+      ),
+    );
+  }
+
   bool hitDebugButton(Vector2 worldPos) {
+    if (!TowerDefenseGame.showDebugUi) return false;
     if (_debugButtonRect == null) return false;
     return _debugButtonRect!.contains(Offset(worldPos.x, worldPos.y));
   }
 
+  bool hitSpeedButton(Vector2 worldPos) {
+    if (_speedButtonRect == null) return false;
+    return _speedButtonRect!.contains(Offset(worldPos.x, worldPos.y));
+  }
+
   bool hitDebugPanel(Vector2 worldPos, TowerDefenseGame game) {
+    if (!TowerDefenseGame.showDebugUi) return false;
     if (_debugPanelRect == null) return false;
     if (!_debugPanelRect!.contains(Offset(worldPos.x, worldPos.y))) return false;
     final local = Offset(worldPos.x - _debugPanelRect!.left, worldPos.y - _debugPanelRect!.top);

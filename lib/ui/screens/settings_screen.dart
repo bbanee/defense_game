@@ -64,8 +64,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.remove('account_progress_json');
     await prefs.remove('settings_json');
     await prefs.remove('local_ranking_json');
+    await prefs.remove('local_stage_ranking_json');
+    await prefs.remove('local_infinite_ranking_json');
+    final fresh = await progressRepo.load();
     if (!mounted) return;
-    Navigator.of(context).pop();
+    Navigator.of(context).pop(fresh);
   }
 
   Future<void> _grantAllTowerShards(int amount) async {
