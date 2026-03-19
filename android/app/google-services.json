@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "654983998676",
+    "project_id": "defense-game-16463",
+    "storage_bucket": "defense-game-16463.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:654983998676:android:25be6fa7db27f518f5df41",
+        "android_client_info": {
+          "package_name": "com.jini.defense_game"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "654983998676-ke8hgu3s22bdpvkhnl5htruc8l5nc49d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.jini.defense_game",
+            "certificate_hash": "c2d780231c2edc6955fcbdf66cc0894f182312aa"
+          }
+        },
+        {
+          "client_id": "654983998676-cdo2038ke6lgseb9en927rocunm99q5p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBu1An_0yA4PYeqHQWTwDz8bcfD6VLKgCY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "654983998676-cdo2038ke6lgseb9en927rocunm99q5p.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

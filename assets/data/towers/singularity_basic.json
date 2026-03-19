@@ -4,7 +4,7 @@
     "descKey":  "tower.singularity.desc",
     "rarity":  "legendary",
     "baseDamage":  42,
-    "fireRate":  0.5,
+    "fireRate":  0.58,
     "range":  132,
     "attackType":  "projectile",
     "projectileSpeed":  420,

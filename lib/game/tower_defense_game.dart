@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flame/components.dart';
@@ -10,12 +10,14 @@ import 'package:flutter/material.dart';
 import 'package:tower_defense/game/tower_effect.dart';
 import 'package:tower_defense/data/definition_repository.dart';
 import 'package:tower_defense/data/repositories/account_progress_repository.dart';
+import 'package:tower_defense/data/repositories/analytics_repository.dart';
 import 'package:tower_defense/data/repositories/balance_repository.dart';
 import 'package:tower_defense/data/repositories/ranking_repository.dart';
 import 'package:tower_defense/domain/models/definitions.dart';
 import 'package:tower_defense/domain/progress/account_progress.dart';
 import 'package:tower_defense/domain/progress/lobby_upgrade_progress.dart';
 import 'package:tower_defense/game/enemy_status.dart';
+import 'package:tower_defense/shared/audio_service.dart';
 import 'package:tower_defense/shared/tower_visual_fx.dart';
 
 part 'tower_defense_game_core.part.dart';

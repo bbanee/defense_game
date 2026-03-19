@@ -62,7 +62,6 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyAnim> {
   bool atCore = false;
   double attackTimer = 0;
   final double attackInterval = 1.0;
-  final double attackDamage = 5;
   double progress = 0;
 
   double hitTimer = 0;
@@ -81,6 +80,20 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyAnim> {
 
   static final Map<EnemyType, Vector2> _visualOffsetCache = {};
   Vector2 visualOffset = Vector2.zero();
+
+  double get attackDamage {
+    return switch (def.archetype) {
+      'swarm' => 3,
+      'fast' => 4,
+      'normal' => 5,
+      'ranged' => 6,
+      'tank' => 8,
+      'armored' => 9,
+      'elite' => 12,
+      'boss' => 18,
+      _ => 5,
+    }.toDouble();
+  }
 
   Vector2 get visualCenter => position + Vector2(visualOffset.x * scale.x, visualOffset.y * scale.y);
 

@@ -1,8 +1,9 @@
-﻿part of 'tower_management_screen.dart';
+part of 'tower_management_screen.dart';
 
 extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
   Widget _towerGridTile(TowerDef def) {
-    final p = progress.towers[def.id] ?? TowerProgress(towerId: def.id, unlocked: false);
+    final p = progress.towers[def.id] ??
+        TowerProgress(towerId: def.id, unlocked: false);
     final rarityColor = _rarityColor(def.rarity);
 
     return InkWell(
@@ -33,9 +34,13 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [rarityColor.withOpacity(0.26), const Color(0xFFFFFFFF)],
+                      colors: [
+                        rarityColor.withOpacity(0.26),
+                        const Color(0xFFFFFFFF)
+                      ],
                     ),
-                    border: Border.all(color: rarityColor.withOpacity(0.6), width: 1),
+                    border: Border.all(
+                        color: rarityColor.withOpacity(0.6), width: 1),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(7),
@@ -51,15 +56,34 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                                     alignment: Alignment.center,
                                     errorBuilder: (_, __, ___) => Container(
                                       color: const Color(0xFFE2E8F8),
-                                      child: const Icon(Icons.image_not_supported, size: 18),
+                                      child: const Icon(
+                                          Icons.image_not_supported,
+                                          size: 18),
                                     ),
                                   )
                                 : ColorFiltered(
-                                    colorFilter: const ColorFilter.matrix(<double>[
-                                      0.2126, 0.7152, 0.0722, 0, 0,
-                                      0.2126, 0.7152, 0.0722, 0, 0,
-                                      0.2126, 0.7152, 0.0722, 0, 0,
-                                      0, 0, 0, 1, 0,
+                                    colorFilter:
+                                        const ColorFilter.matrix(<double>[
+                                      0.2126,
+                                      0.7152,
+                                      0.0722,
+                                      0,
+                                      0,
+                                      0.2126,
+                                      0.7152,
+                                      0.0722,
+                                      0,
+                                      0,
+                                      0.2126,
+                                      0.7152,
+                                      0.0722,
+                                      0,
+                                      0,
+                                      0,
+                                      0,
+                                      0,
+                                      1,
+                                      0,
                                     ]),
                                     child: Image.asset(
                                       _towerManageImagePath(def.id),
@@ -69,7 +93,9 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                                       colorBlendMode: BlendMode.darken,
                                       errorBuilder: (_, __, ___) => Container(
                                         color: const Color(0xFF0E1522),
-                                        child: const Icon(Icons.image_not_supported, size: 18),
+                                        child: const Icon(
+                                            Icons.image_not_supported,
+                                            size: 18),
                                       ),
                                     ),
                                   ),
@@ -116,7 +142,9 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                 style: TextStyle(
                   fontSize: 9.5,
                   fontWeight: FontWeight.w700,
-                  color: p.unlocked ? const Color(0xFFCFE1FF) : const Color(0xFF7F90B2),
+                  color: p.unlocked
+                      ? const Color(0xFFCFE1FF)
+                      : const Color(0xFF7F90B2),
                   shadows: const [
                     Shadow(
                       color: Color(0xCC07111F),
@@ -134,8 +162,10 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
   }
 
   Future<void> _openTowerDetailSheet(TowerDef def) async {
-    final p = progress.towers[def.id] ?? TowerProgress(towerId: def.id, unlocked: false);
-    final lp = progress.lobbyUpgrades[def.id] ?? TowerLobbyUpgradeProgress(towerId: def.id);
+    final p = progress.towers[def.id] ??
+        TowerProgress(towerId: def.id, unlocked: false);
+    final lp = progress.lobbyUpgrades[def.id] ??
+        TowerLobbyUpgradeProgress(towerId: def.id);
     progress.towers[def.id] = p;
     progress.lobbyUpgrades[def.id] = lp;
     final maxLevel = 15;
@@ -187,9 +217,12 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                         padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.9),
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                          borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(20)),
                           border: Border(
-                            bottom: BorderSide(color: const Color(0xFFC8D8FA).withOpacity(0.9)),
+                            bottom: BorderSide(
+                                color:
+                                    const Color(0xFFC8D8FA).withOpacity(0.9)),
                           ),
                         ),
                         child: Row(
@@ -203,7 +236,9 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                                   Container(
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(13),
-                                      border: Border.all(color: _rarityColor(def.rarity), width: 2),
+                                      border: Border.all(
+                                          color: _rarityColor(def.rarity),
+                                          width: 2),
                                       boxShadow: const [
                                         BoxShadow(
                                           color: Color(0x22000000),
@@ -221,11 +256,13 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                                             width: 98,
                                             height: 98,
                                             fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) => Container(
+                                            errorBuilder: (_, __, ___) =>
+                                                Container(
                                               width: 98,
                                               height: 98,
                                               color: const Color(0xFFE2E8F8),
-                                              child: const Icon(Icons.image_not_supported),
+                                              child: const Icon(
+                                                  Icons.image_not_supported),
                                             ),
                                           ),
                                           Positioned.fill(
@@ -246,6 +283,7 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                                         : '${p.shards}/$levelUpCost\n레벨업',
                                     enabled: canLevelUp,
                                     onPressed: () {
+                                      final previousLevel = p.level;
                                       applyChange(() {
                                         if (canLevelUp) {
                                           p.shards -= levelUpCost;
@@ -253,6 +291,15 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                                         }
                                         progress.towers[def.id] = p;
                                       });
+                                      if (p.level != previousLevel) {
+                                        economyLogRepo.logUpgrade(
+                                          upgradeType: 'tower_level',
+                                          targetId: def.id,
+                                          fromLevel: previousLevel,
+                                          toLevel: p.level,
+                                          metadata: {'shardCost': levelUpCost},
+                                        );
+                                      }
                                     },
                                   ),
                                 ],
@@ -268,23 +315,28 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                                     Row(
                                       children: [
                                         Expanded(
-                                        child: Text(
-                                          _towerDisplayNameKo(def.id),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontSize: 17,
-                                            fontWeight: FontWeight.w900,
-                                            color: Color(0xFF21366F),
+                                          child: Text(
+                                            _towerDisplayNameKo(def.id),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.w900,
+                                              color: Color(0xFF21366F),
+                                            ),
                                           ),
                                         ),
-                                        ),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 4),
                                           decoration: BoxDecoration(
-                                            color: _rarityColor(def.rarity).withOpacity(0.14),
-                                            borderRadius: BorderRadius.circular(999),
-                                            border: Border.all(color: _rarityColor(def.rarity), width: 1.2),
+                                            color: _rarityColor(def.rarity)
+                                                .withOpacity(0.14),
+                                            borderRadius:
+                                                BorderRadius.circular(999),
+                                            border: Border.all(
+                                                color: _rarityColor(def.rarity),
+                                                width: 1.2),
                                           ),
                                           child: Text(
                                             _rarityLabelKo(def.rarity),
@@ -302,8 +354,10 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                                       spacing: 6,
                                       runSpacing: 6,
                                       children: [
-                                        _sheetStatChip('레벨 ${p.level}/$maxLevel'),
-                                        _sheetStatChip('포인트 $remainingPoints/$maxPoints'),
+                                        _sheetStatChip(
+                                            '레벨 ${p.level}/$maxLevel'),
+                                        _sheetStatChip(
+                                            '포인트 $remainingPoints/$maxPoints'),
                                       ],
                                     ),
                                     const SizedBox(height: 6),
@@ -353,7 +407,8 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                               label: _trackCardTitle(def, 'identity'),
                               level: lp.identity,
                               maxLevel: maxTrackLevel,
-                              canUpgrade: lp.identity < maxTrackLevel && remainingPoints > 0,
+                              canUpgrade: lp.identity < maxTrackLevel &&
+                                  remainingPoints > 0,
                               disabledReason: _trackDisabledReason(
                                 unlocked: true,
                                 level: lp.identity,
@@ -361,13 +416,23 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                                 remainingPoints: remainingPoints,
                               ),
                               onUpgrade: () {
+                                final previous = lp.identity;
                                 applyChange(() {
-                                  if (lp.identity >= maxTrackLevel || remainingPoints <= 0) {
+                                  if (lp.identity >= maxTrackLevel ||
+                                      remainingPoints <= 0) {
                                     return;
                                   }
                                   lp.identity += 1;
                                   progress.lobbyUpgrades[def.id] = lp;
                                 });
+                                if (lp.identity != previous) {
+                                  economyLogRepo.logUpgrade(
+                                    upgradeType: 'tower_identity_point',
+                                    targetId: def.id,
+                                    fromLevel: previous,
+                                    toLevel: lp.identity,
+                                  );
+                                }
                               },
                             ),
                             const SizedBox(height: 8),
@@ -377,7 +442,8 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                               label: _trackCardTitle(def, 'operations'),
                               level: lp.operations,
                               maxLevel: maxTrackLevel,
-                              canUpgrade: lp.operations < maxTrackLevel && remainingPoints > 0,
+                              canUpgrade: lp.operations < maxTrackLevel &&
+                                  remainingPoints > 0,
                               disabledReason: _trackDisabledReason(
                                 unlocked: true,
                                 level: lp.operations,
@@ -385,13 +451,23 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                                 remainingPoints: remainingPoints,
                               ),
                               onUpgrade: () {
+                                final previous = lp.operations;
                                 applyChange(() {
-                                  if (lp.operations >= maxTrackLevel || remainingPoints <= 0) {
+                                  if (lp.operations >= maxTrackLevel ||
+                                      remainingPoints <= 0) {
                                     return;
                                   }
                                   lp.operations += 1;
                                   progress.lobbyUpgrades[def.id] = lp;
                                 });
+                                if (lp.operations != previous) {
+                                  economyLogRepo.logUpgrade(
+                                    upgradeType: 'tower_operations_point',
+                                    targetId: def.id,
+                                    fromLevel: previous,
+                                    toLevel: lp.operations,
+                                  );
+                                }
                               },
                             ),
                             const SizedBox(height: 8),
@@ -401,7 +477,8 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                               label: _trackCardTitle(def, 'synergy'),
                               level: lp.synergy,
                               maxLevel: maxTrackLevel,
-                              canUpgrade: lp.synergy < maxTrackLevel && remainingPoints > 0,
+                              canUpgrade: lp.synergy < maxTrackLevel &&
+                                  remainingPoints > 0,
                               disabledReason: _trackDisabledReason(
                                 unlocked: true,
                                 level: lp.synergy,
@@ -409,13 +486,23 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                                 remainingPoints: remainingPoints,
                               ),
                               onUpgrade: () {
+                                final previous = lp.synergy;
                                 applyChange(() {
-                                  if (lp.synergy >= maxTrackLevel || remainingPoints <= 0) {
+                                  if (lp.synergy >= maxTrackLevel ||
+                                      remainingPoints <= 0) {
                                     return;
                                   }
                                   lp.synergy += 1;
                                   progress.lobbyUpgrades[def.id] = lp;
                                 });
+                                if (lp.synergy != previous) {
+                                  economyLogRepo.logUpgrade(
+                                    upgradeType: 'tower_synergy_point',
+                                    targetId: def.id,
+                                    fromLevel: previous,
+                                    toLevel: lp.synergy,
+                                  );
+                                }
                               },
                             ),
                           ],
@@ -433,15 +520,33 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                                         ? '다이아 100 초기화'
                                         : '초기화 불가',
                                     compact: true,
-                                    onPressed: usedPoints > 0 && progress.diamonds >= 100
+                                    onPressed: usedPoints > 0 &&
+                                            progress.diamonds >= 100
                                         ? () {
+                                            final balanceAfter =
+                                                progress.diamonds - 100;
                                             applyChange(() {
                                               progress.diamonds -= 100;
                                               lp.identity = 0;
                                               lp.operations = 0;
                                               lp.synergy = 0;
-                                              progress.lobbyUpgrades[def.id] = lp;
+                                              progress.lobbyUpgrades[def.id] =
+                                                  lp;
                                             });
+                                            economyLogRepo.logCurrencyChange(
+                                              source:
+                                                  'tower_point_reset_diamond',
+                                              currency: 'diamonds',
+                                              amount: -100,
+                                              balanceAfter: balanceAfter,
+                                              metadata: {'towerId': def.id},
+                                            );
+                                            economyLogRepo.logUpgrade(
+                                              upgradeType: 'tower_point_reset',
+                                              targetId: def.id,
+                                              fromLevel: usedPoints,
+                                              toLevel: 0,
+                                            );
                                           }
                                         : null,
                                   ),
@@ -456,63 +561,91 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                                     onPressed: usedPoints > 0
                                         ? () {
                                             final now = DateTime.now();
-                                            final month = now.month.toString().padLeft(2, '0');
-                                            final day = now.day.toString().padLeft(2, '0');
-                                            final today = '${now.year}-$month-$day';
+                                            final month = now.month
+                                                .toString()
+                                                .padLeft(2, '0');
+                                            final day = now.day
+                                                .toString()
+                                                .padLeft(2, '0');
+                                            final today =
+                                                '${now.year}-$month-$day';
                                             if (progress.adDailyDate != today) {
                                               progress.adDailyDate = today;
-                                              progress.adPointResetDailyCount = 0;
-                                              progress.adShardDrawTenDailyCount = 0;
+                                              progress.adPointResetDailyCount =
+                                                  0;
+                                              progress
+                                                  .adShardDrawTenDailyCount = 0;
                                             }
-                                            if (progress.adPointResetDailyCount >= 5) {
+                                            if (progress
+                                                    .adPointResetDailyCount >=
+                                                5) {
                                               showDialog<void>(
                                                 context: context,
                                                 builder: (context) => Dialog(
-                                                  backgroundColor: Colors.transparent,
+                                                  backgroundColor:
+                                                      Colors.transparent,
                                                   child: Container(
-                                                    padding: const EdgeInsets.all(16),
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            16),
                                                     decoration: BoxDecoration(
-                                                      color: const Color(0xFF102033),
-                                                      borderRadius: BorderRadius.circular(20),
+                                                      color: const Color(
+                                                          0xFF102033),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20),
                                                       border: Border.all(
-                                                        color: const Color(0xFF83B5FF),
+                                                        color: const Color(
+                                                            0xFF83B5FF),
                                                         width: 1.4,
                                                       ),
                                                       boxShadow: const [
                                                         BoxShadow(
-                                                          color: Color(0x66000000),
+                                                          color:
+                                                              Color(0x66000000),
                                                           blurRadius: 20,
                                                           offset: Offset(0, 10),
                                                         ),
                                                       ],
                                                     ),
                                                     child: Column(
-                                                      mainAxisSize: MainAxisSize.min,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
                                                       children: [
                                                         const Text(
                                                           '알림',
                                                           style: TextStyle(
-                                                            color: Color(0xFFF3F7FF),
+                                                            color: Color(
+                                                                0xFFF3F7FF),
                                                             fontSize: 18,
-                                                            fontWeight: FontWeight.w900,
+                                                            fontWeight:
+                                                                FontWeight.w900,
                                                           ),
                                                         ),
-                                                        const SizedBox(height: 12),
+                                                        const SizedBox(
+                                                            height: 12),
                                                         const Text(
                                                           '광고 포인트 초기화는 하루 5회까지만 가능합니다.',
-                                                          textAlign: TextAlign.center,
+                                                          textAlign:
+                                                              TextAlign.center,
                                                           style: TextStyle(
-                                                            color: Color(0xFFD9E7FF),
+                                                            color: Color(
+                                                                0xFFD9E7FF),
                                                             fontSize: 13,
-                                                            fontWeight: FontWeight.w700,
+                                                            fontWeight:
+                                                                FontWeight.w700,
                                                             height: 1.35,
                                                           ),
                                                         ),
-                                                        const SizedBox(height: 14),
+                                                        const SizedBox(
+                                                            height: 14),
                                                         AppPanelButton(
                                                           label: '확인',
                                                           compact: true,
-                                                          onPressed: () => Navigator.of(context).pop(),
+                                                          onPressed: () =>
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop(),
                                                         ),
                                                       ],
                                                     ),
@@ -522,12 +655,28 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                                               return;
                                             }
                                             applyChange(() {
-                                              progress.adPointResetDailyCount += 1;
+                                              progress.adPointResetDailyCount +=
+                                                  1;
                                               lp.identity = 0;
                                               lp.operations = 0;
                                               lp.synergy = 0;
-                                              progress.lobbyUpgrades[def.id] = lp;
+                                              progress.lobbyUpgrades[def.id] =
+                                                  lp;
                                             });
+                                            economyLogRepo.logAdReward(
+                                              placement: 'tower_point_reset',
+                                              reward: {
+                                                'towerId': def.id,
+                                                'reset': true
+                                              },
+                                            );
+                                            economyLogRepo.logUpgrade(
+                                              upgradeType:
+                                                  'tower_point_reset_ad',
+                                              targetId: def.id,
+                                              fromLevel: usedPoints,
+                                              toLevel: 0,
+                                            );
                                           }
                                         : null,
                                   ),
@@ -613,7 +762,8 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                 const SizedBox(height: 1),
                 Text(
                   '레벨당 ${_formatTrackValue(perLevel, key)} | 최대 ${_formatTrackValue(cap, key)}',
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF4964A8)),
+                  style:
+                      const TextStyle(fontSize: 11, color: Color(0xFF4964A8)),
                 ),
                 Text(
                   '현재 효과 ${_formatTrackValue(currentBonus, key)}',
@@ -628,7 +778,8 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
                       disabledReason,
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF8A2A2A)),
+                      style: const TextStyle(
+                          fontSize: 11, color: Color(0xFF8A2A2A)),
                     ),
                   ),
               ],
@@ -672,7 +823,8 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
     final towerLevel = p.level;
     final effectiveDamage = _effectiveDamage(def, towerLevel, lp.operations);
     final damageDelta = effectiveDamage - def.baseDamage;
-    final effectiveInterval = _effectiveAttackInterval(def, towerLevel, lp.operations);
+    final effectiveInterval =
+        _effectiveAttackInterval(def, towerLevel, lp.operations);
     final intervalDelta = effectiveInterval - def.fireRate;
     final effectiveRange = _effectiveRange(def, towerLevel, lp.operations);
     final rangeDelta = effectiveRange - def.range;
@@ -701,7 +853,8 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
               Expanded(
                 child: _infoCompactStatCell(
                   '공격력',
-                  def.baseDamage.toStringAsFixed(def.baseDamage % 1 == 0 ? 0 : 1),
+                  def.baseDamage
+                      .toStringAsFixed(def.baseDamage % 1 == 0 ? 0 : 1),
                   _formatSignedValue(damageDelta),
                 ),
               ),
@@ -796,7 +949,8 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                 colors: [top, bottom],
               ),
               border: Border.all(
-                color: enabled ? const Color(0xFF1F3D8B) : const Color(0xFF8D95A8),
+                color:
+                    enabled ? const Color(0xFF1F3D8B) : const Color(0xFF8D95A8),
                 width: 1.2,
               ),
               boxShadow: const [
@@ -807,17 +961,17 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                 ),
               ],
             ),
-              child: Center(
-                child: Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    height: 1.1,
-                    letterSpacing: 0.2,
+            child: Center(
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  height: 1.1,
+                  letterSpacing: 0.2,
                 ),
               ),
             ),
@@ -907,7 +1061,8 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
     );
   }
 
-  Widget _infoCompactStatCell(String label, String baseValue, String deltaValue) {
+  Widget _infoCompactStatCell(
+      String label, String baseValue, String deltaValue) {
     return Container(
       constraints: const BoxConstraints(minHeight: 32),
       alignment: Alignment.centerLeft,
@@ -1055,7 +1210,8 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                         colors: [Color(0xFFFFFFFF), Color(0xFFF0F6FF)],
                       ),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF8FB0EA), width: 1.4),
+                      border: Border.all(
+                          color: const Color(0xFF8FB0EA), width: 1.4),
                       boxShadow: const [
                         BoxShadow(
                           color: Color(0x33000000),
@@ -1092,7 +1248,8 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
         );
       },
       transitionBuilder: (context, animation, _, child) {
-        final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+        final curved =
+            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
         return FadeTransition(
           opacity: curved,
           child: SlideTransition(
@@ -1119,11 +1276,14 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
     }
 
     if (index == 1) {
-      final effectiveDamage = _effectiveDamage(def, progress.level, lobbyProgress.operations);
-      final effectiveInterval =
-          _effectiveAttackInterval(def, progress.level, lobbyProgress.operations);
-      final effectiveRange = _effectiveRange(def, progress.level, lobbyProgress.operations);
-      final damage = effectiveDamage.toStringAsFixed(effectiveDamage % 1 == 0 ? 0 : 1);
+      final effectiveDamage =
+          _effectiveDamage(def, progress.level, lobbyProgress.operations);
+      final effectiveInterval = _effectiveAttackInterval(
+          def, progress.level, lobbyProgress.operations);
+      final effectiveRange =
+          _effectiveRange(def, progress.level, lobbyProgress.operations);
+      final damage =
+          effectiveDamage.toStringAsFixed(effectiveDamage % 1 == 0 ? 0 : 1);
       return '${_basicAttackSummary(towerId)}\n'
           '공격력 $damage, 공격주기 ${effectiveInterval.toStringAsFixed(2)}초, '
           '사거리 ${effectiveRange.toStringAsFixed(0)}, '
@@ -1209,23 +1369,23 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
     return switch (index) {
       1 => '기본 타격으로 전투의 핵심 화력을 담당',
       2 => switch (towerId) {
-        'cannon_basic' => '폭발 반경을 넓혀 군집 적을 한 번에 무너뜨리는 강화 포격',
-        'rapid_basic' => '초고속 연사로 다수 적에게 취약을 빠르게 퍼뜨리는 강화 사격',
-        'shotgun_basic' => '강한 근접 산탄으로 전열을 무너뜨리는 폭딜 제압 사격',
-        'frost_basic' => '광역 빙결 파동으로 적 진군을 끊어내는 냉각 폭주',
-        'drone_basic' => '드론 화력을 폭주시켜 적 전열의 공격력을 크게 깎는 집중 요격',
-        'chain_basic' => '연쇄 전류를 증폭해 적 무리를 순식간에 감전시키는 과부하 방전',
-        'missile_basic' => '확산 폭격으로 취약 표식을 넓게 남기는 미사일 폭주',
-        'support_basic' => '강한 취약 지원과 실드 회복으로 전장을 안정화시키는 지원 프로토콜 폭증',
-        'laser_basic' => '고출력 레이저로 도트 피해를 급격히 누적하는 과열 조사',
-        'sniper_basic' => '핵심 적을 꿰뚫어 전선을 정리하는 정밀 처형 사격',
-        'gravity_basic' => '중력장을 압축해 적 무리를 한곳으로 끌어모으는 왜곡 붕괴',
-        'infection_basic' => '감염 확산을 가속해 적 전체를 오염시키는 바이러스 폭발',
-        'chrono_basic' => '시간 왜곡을 넓게 퍼뜨려 전장의 흐름을 멈추게 하는 크로노 폭주',
-        'singularity_basic' => '특이점을 증폭해 고체력 적까지 붕괴시키는 초중력 포격',
-        'mortar_basic' => '대형 포격과 장시간 제어로 진군을 묶어두는 박격 제압',
-        _ => '타워 고유 성능을 극대화하는 궁극기',
-      },
+          'cannon_basic' => '폭발 반경을 넓혀 군집 적을 한 번에 무너뜨리는 강화 포격',
+          'rapid_basic' => '초고속 연사로 다수 적에게 취약을 빠르게 퍼뜨리는 강화 사격',
+          'shotgun_basic' => '강한 근접 산탄으로 전열을 무너뜨리는 폭딜 제압 사격',
+          'frost_basic' => '광역 빙결 파동으로 적 진군을 끊어내는 냉각 폭주',
+          'drone_basic' => '드론 화력을 폭주시켜 적 전열의 공격력을 크게 깎는 집중 요격',
+          'chain_basic' => '연쇄 전류를 증폭해 적 무리를 순식간에 감전시키는 과부하 방전',
+          'missile_basic' => '확산 폭격으로 취약 표식을 넓게 남기는 미사일 폭주',
+          'support_basic' => '강한 취약 지원과 실드 회복으로 전장을 안정화시키는 지원 프로토콜 폭증',
+          'laser_basic' => '고출력 레이저로 도트 피해를 급격히 누적하는 과열 조사',
+          'sniper_basic' => '핵심 적을 꿰뚫어 전선을 정리하는 정밀 처형 사격',
+          'gravity_basic' => '중력장을 압축해 적 무리를 한곳으로 끌어모으는 왜곡 붕괴',
+          'infection_basic' => '감염 확산을 가속해 적 전체를 오염시키는 바이러스 폭발',
+          'chrono_basic' => '시간 왜곡을 넓게 퍼뜨려 전장의 흐름을 멈추게 하는 크로노 폭주',
+          'singularity_basic' => '특이점을 증폭해 고체력 적까지 붕괴시키는 초중력 포격',
+          'mortar_basic' => '대형 포격과 장시간 제어로 진군을 묶어두는 박격 제압',
+          _ => '타워 고유 성능을 극대화하는 궁극기',
+        },
       _ => _towerSpecialEffectSummary(towerId),
     };
   }
@@ -1347,7 +1507,8 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                       errorBuilder: (_, __, ___) => Container(
                         color: Colors.black,
                         alignment: Alignment.center,
-                        child: const Icon(Icons.broken_image, color: Color(0xFF8EA4D8)),
+                        child: const Icon(Icons.broken_image,
+                            color: Color(0xFF8EA4D8)),
                       ),
                     ),
                   ),
@@ -1357,22 +1518,24 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                     right: 0,
                     child: Center(
                       child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xCC0E1A34),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: const Color(0xFF6E8FD6), width: 0.8),
-                      ),
-                      child: Text(
-                        _skillLabel(index),
-                        style: const TextStyle(
-                          fontSize: 8.5,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          height: 1.0,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xCC0E1A34),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                              color: const Color(0xFF6E8FD6), width: 0.8),
+                        ),
+                        child: Text(
+                          _skillLabel(index),
+                          style: const TextStyle(
+                            fontSize: 8.5,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            height: 1.0,
+                          ),
                         ),
                       ),
-                    ),
                     ),
                   ),
                 ],
@@ -1383,6 +1546,4 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
       ),
     );
   }
-
 }
-

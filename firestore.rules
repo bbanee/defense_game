@@ -1,0 +1,75 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    match /users/{uid} {
+      allow read, write: if isOwner(uid);
+
+      match /{document=**} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+
+    match /stageRankings/{uid} {
+      allow read: if true;
+      allow write: if isOwner(uid);
+    }
+
+    match /infiniteRankings/{uid} {
+      allow read: if true;
+      allow write: if isOwner(uid);
+    }
+
+    match /nicknames/{nickname} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if signedIn() &&
+        resource.data.uid == request.auth.uid &&
+        request.resource.data.uid == request.auth.uid;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    match /appConfig/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /analytics_auth_events/{docId} {
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+
+    match /analytics_battle_events/{docId} {
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+
+    match /analytics_currency_events/{docId} {
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+
+    match /analytics_upgrade_events/{docId} {
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+
+    match /analytics_shop_events/{docId} {
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+
+    match /analytics_ad_events/{docId} {
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+  }
+}

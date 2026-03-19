@@ -1,13 +1,17 @@
+import 'dart:async';
+
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:tower_defense/domain/progress/account_progress.dart';
 import 'package:tower_defense/game/tower_defense_game.dart';
+import 'package:tower_defense/shared/audio_service.dart';
 
-class GameScreen extends StatelessWidget {
+class GameScreen extends StatefulWidget {
   final VoidCallback? onExit;
   final String difficultyId;
   final String stageId;
   final AccountProgress progress;
+  final bool showDamage;
 
   const GameScreen({
     super.key,
@@ -15,9 +19,29 @@ class GameScreen extends StatelessWidget {
     required this.difficultyId,
     required this.stageId,
     required this.progress,
+    required this.showDamage,
   });
 
+  @override
+  State<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> {
+  @override
+  void initState() {
+    super.initState();
+    unawaited(AppAudioService.instance.playBgm(AudioBgmTrack.battle));
+  }
+
+  @override
+  void dispose() {
+    unawaited(AppAudioService.instance.stopBgm());
+    unawaited(AppAudioService.instance.stopAllSfx());
+    super.dispose();
+  }
+
   Future<void> _confirmExit(BuildContext context) async {
+    unawaited(AppAudioService.instance.playPopupOpen());
     final shouldExit = await showDialog<bool>(
       context: context,
       builder: (context) => Dialog(
@@ -69,7 +93,8 @@ class GameScreen extends StatelessWidget {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFFF3F7FF),
                         backgroundColor: const Color(0x99122336),
-                        side: const BorderSide(color: Color(0xFF83B5FF), width: 1.2),
+                        side: const BorderSide(
+                            color: Color(0xFF83B5FF), width: 1.2),
                       ),
                       child: const Text('취소'),
                     ),
@@ -81,7 +106,8 @@ class GameScreen extends StatelessWidget {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFFF3F7FF),
                         backgroundColor: const Color(0xCC17304B),
-                        side: const BorderSide(color: Color(0xFF83B5FF), width: 1.2),
+                        side: const BorderSide(
+                            color: Color(0xFF83B5FF), width: 1.2),
                       ),
                       child: const Text('로비로'),
                     ),
@@ -95,7 +121,9 @@ class GameScreen extends StatelessWidget {
     );
 
     if (shouldExit == true) {
-      onExit?.call();
+      unawaited(AppAudioService.instance.stopBgm());
+      unawaited(AppAudioService.instance.stopAllSfx());
+      widget.onExit?.call();
     }
   }
 
@@ -112,12 +140,14 @@ class GameScreen extends StatelessWidget {
         body: SafeArea(
           child: GameWidget(
             game: TowerDefenseGame(
-              onExitToLobby: onExit,
-              difficultyId: difficultyId,
-              stageId: stageId,
-              accountProgress: progress,
+              onExitToLobby: widget.onExit,
+              difficultyId: widget.difficultyId,
+              stageId: widget.stageId,
+              accountProgress: widget.progress,
+              showDamage: widget.showDamage,
             ),
-            backgroundBuilder: (context) => const ColoredBox(color: Color(0xFF0E0E12)),
+            backgroundBuilder: (context) =>
+                const ColoredBox(color: Color(0xFF0E0E12)),
           ),
         ),
       ),

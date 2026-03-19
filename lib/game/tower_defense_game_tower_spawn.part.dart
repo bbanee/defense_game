@@ -1,4 +1,4 @@
-﻿part of 'tower_defense_game.dart';
+part of 'tower_defense_game.dart';
 
 class Tower extends PositionComponent {
   final TowerDefenseGame gameRef;
@@ -40,8 +40,8 @@ class Tower extends PositionComponent {
       permanentLevel: permanentLevel,
       growthConfig: gameRef.balanceConfig.growthForTower(def.id),
       lobbyDamageMultiplier: 1.0 + _operationsBonusFor('stat.damage_pct'),
-      lobbyFireRateMultiplier: (1.0 - _operationsBonusFor('stat.fire_rate_pct'))
-          .clamp(0.7, 1.0),
+      lobbyFireRateMultiplier:
+          (1.0 - _operationsBonusFor('stat.fire_rate_pct')).clamp(0.7, 1.0),
       lobbyRangePercent: _operationsBonusFor('stat.range_pct'),
     );
     _applyStatsFromState();
@@ -55,7 +55,8 @@ class Tower extends PositionComponent {
     if (path == null) return;
     try {
       final image = await gameRef.images.load(path);
-      final sheet = SpriteSheet.fromColumnsAndRows(image: image, columns: 2, rows: 1);
+      final sheet =
+          SpriteSheet.fromColumnsAndRows(image: image, columns: 2, rows: 1);
       // frame 0: left-down, frame 1: right-down (assumed)
       leftDownSprite = sheet.getSprite(0, 0);
       rightDownSprite = sheet.getSprite(0, 1);
@@ -84,7 +85,16 @@ class Tower extends PositionComponent {
 
     final isUltimate =
         def.ultimateChance > 0 && gameRef.rng.nextDouble() < def.ultimateChance;
-    final finalDamage = isUltimate ? damage * def.ultimateDamageMultiplier : damage;
+    final finalDamage =
+        isUltimate ? damage * def.ultimateDamageMultiplier : damage;
+    unawaited(
+      AppAudioService.instance.playTowerAttack(
+        towerId,
+        isUltimate: isUltimate,
+        attackIntervalSec: fireRate,
+        sourceKey: '${grid.x},${grid.y}',
+      ),
+    );
 
     void applyHit(Enemy hitTarget) {
       final hitDamage = _applySynergyDamageMultiplier(hitTarget, finalDamage);
@@ -177,8 +187,9 @@ class Tower extends PositionComponent {
     final nearby = gameRef.enemies
         .where((e) => !e.isRemoved && e != primary && !e.isDying)
         .toList()
-      ..sort((a, b) => a.position.distanceTo(primary.position).compareTo(
-          b.position.distanceTo(primary.position)));
+      ..sort((a, b) => a.position
+          .distanceTo(primary.position)
+          .compareTo(b.position.distanceTo(primary.position)));
 
     int hitCount = 0;
     for (final enemy in nearby) {
@@ -200,9 +211,9 @@ class Tower extends PositionComponent {
     final candidates = gameRef.enemies
         .where((e) => !e.isRemoved && e != primary && !e.isDying)
         .toList()
-      ..sort((a, b) =>
-          a.position.distanceTo(primary.position).compareTo(
-              b.position.distanceTo(primary.position)));
+      ..sort((a, b) => a.position
+          .distanceTo(primary.position)
+          .compareTo(b.position.distanceTo(primary.position)));
 
     int hit = 0;
     for (final enemy in candidates) {
@@ -218,8 +229,8 @@ class Tower extends PositionComponent {
   void _applyUltimateAlpha(Enemy primary, double hitDamage) {
     switch (towerId) {
       case 'cannon_basic':
-        for (final enemy in _nearbyEnemies(primary,
-            radiusTiles: 1.6, maxTargets: 3)) {
+        for (final enemy
+            in _nearbyEnemies(primary, radiusTiles: 1.6, maxTargets: 3)) {
           enemy.takeDamage(hitDamage * 0.55);
           _applyEnemyStatusEffect(
             enemy,
@@ -229,8 +240,8 @@ class Tower extends PositionComponent {
         }
         break;
       case 'rapid_basic':
-        for (final enemy in _nearbyEnemies(primary,
-            radiusTiles: 1.3, maxTargets: 4)) {
+        for (final enemy
+            in _nearbyEnemies(primary, radiusTiles: 1.3, maxTargets: 4)) {
           enemy.takeDamage(hitDamage * 0.38);
           _applyEnemyStatusEffect(
             enemy,
@@ -244,8 +255,8 @@ class Tower extends PositionComponent {
         }
         break;
       case 'shotgun_basic':
-        for (final enemy in _nearbyEnemies(primary,
-            radiusTiles: 1.15, maxTargets: 3)) {
+        for (final enemy
+            in _nearbyEnemies(primary, radiusTiles: 1.15, maxTargets: 3)) {
           enemy.takeDamage(hitDamage * 0.45);
           _applyEnemyStatusEffect(
             enemy,
@@ -255,18 +266,19 @@ class Tower extends PositionComponent {
         }
         break;
       case 'frost_basic':
-        for (final enemy in _nearbyEnemies(primary,
-            radiusTiles: 1.2, maxTargets: 2)) {
+        for (final enemy
+            in _nearbyEnemies(primary, radiusTiles: 1.2, maxTargets: 2)) {
           _applyEnemyStatusEffect(
             enemy,
-            const TowerEffectSpec(type: 'freeze', durationSec: 0.45, stackThreshold: 0),
+            const TowerEffectSpec(
+                type: 'freeze', durationSec: 0.45, stackThreshold: 0),
           );
           gameRef.spawnTowerEffect(towerId, 3, enemy.effectCenter, scale: 1.2);
         }
         break;
       case 'drone_basic':
-        for (final enemy in _nearbyEnemies(primary,
-            radiusTiles: 1.5, maxTargets: 4)) {
+        for (final enemy
+            in _nearbyEnemies(primary, radiusTiles: 1.5, maxTargets: 4)) {
           _applyEnemyStatusEffect(
             enemy,
             const TowerEffectSpec(
@@ -292,8 +304,8 @@ class Tower extends PositionComponent {
         );
         break;
       case 'missile_basic':
-        for (final enemy in _nearbyEnemies(primary,
-            radiusTiles: 1.8, maxTargets: 4)) {
+        for (final enemy
+            in _nearbyEnemies(primary, radiusTiles: 1.8, maxTargets: 4)) {
           enemy.takeDamage(hitDamage * 0.6);
           _applyEnemyStatusEffect(
             enemy,
@@ -307,8 +319,8 @@ class Tower extends PositionComponent {
         }
         break;
       case 'support_basic':
-        for (final enemy in _nearbyEnemies(primary,
-            radiusTiles: 1.9, maxTargets: 5)) {
+        for (final enemy
+            in _nearbyEnemies(primary, radiusTiles: 1.9, maxTargets: 5)) {
           _applyEnemyStatusEffect(
             enemy,
             const TowerEffectSpec(
@@ -329,8 +341,8 @@ class Tower extends PositionComponent {
         );
         break;
       case 'laser_basic':
-        for (final enemy in _nearbyEnemies(primary,
-            radiusTiles: 1.4, maxTargets: 3)) {
+        for (final enemy
+            in _nearbyEnemies(primary, radiusTiles: 1.4, maxTargets: 3)) {
           _applyEnemyStatusEffect(
             enemy,
             TowerEffectSpec(
@@ -361,8 +373,8 @@ class Tower extends PositionComponent {
         }
         break;
       case 'gravity_basic':
-        for (final enemy in _nearbyEnemies(primary,
-            radiusTiles: 1.6, maxTargets: 4)) {
+        for (final enemy
+            in _nearbyEnemies(primary, radiusTiles: 1.6, maxTargets: 4)) {
           _applyEnemyStatusEffect(
             enemy,
             const TowerEffectSpec(type: 'pull', value: 2, chance: 1.0),
@@ -375,8 +387,8 @@ class Tower extends PositionComponent {
         }
         break;
       case 'infection_basic':
-        for (final enemy in _nearbyEnemies(primary,
-            radiusTiles: 1.5, maxTargets: 4)) {
+        for (final enemy
+            in _nearbyEnemies(primary, radiusTiles: 1.5, maxTargets: 4)) {
           _applyEnemyStatusEffect(
             enemy,
             const TowerEffectSpec(type: 'dot', value: 12, durationSec: 2.8),
@@ -393,8 +405,8 @@ class Tower extends PositionComponent {
         }
         break;
       case 'chrono_basic':
-        for (final enemy in _nearbyEnemies(primary,
-            radiusTiles: 1.55, maxTargets: 5)) {
+        for (final enemy
+            in _nearbyEnemies(primary, radiusTiles: 1.55, maxTargets: 5)) {
           _applyEnemyStatusEffect(
             enemy,
             const TowerEffectSpec(
@@ -411,8 +423,8 @@ class Tower extends PositionComponent {
         }
         break;
       case 'singularity_basic':
-        for (final enemy in _nearbyEnemies(primary,
-            radiusTiles: 2.0, maxTargets: 6)) {
+        for (final enemy
+            in _nearbyEnemies(primary, radiusTiles: 2.0, maxTargets: 6)) {
           enemy.takeDamage(hitDamage * 0.55);
           _applyEnemyStatusEffect(
             enemy,
@@ -430,8 +442,8 @@ class Tower extends PositionComponent {
         }
         break;
       case 'mortar_basic':
-        for (final enemy in _nearbyEnemies(primary,
-            radiusTiles: 2.0, maxTargets: 5)) {
+        for (final enemy
+            in _nearbyEnemies(primary, radiusTiles: 2.0, maxTargets: 5)) {
           enemy.takeDamage(hitDamage * 0.35);
           _applyEnemyStatusEffect(
             enemy,
@@ -516,9 +528,11 @@ class Tower extends PositionComponent {
       case 'value_pct':
         return spec.copyWith(value: (spec.value ?? 0) * (1.0 + bonus));
       case 'duration_pct':
-        return spec.copyWith(durationSec: (spec.durationSec ?? 0) * (1.0 + bonus));
+        return spec.copyWith(
+            durationSec: (spec.durationSec ?? 0) * (1.0 + bonus));
       case 'chance_flat':
-        return spec.copyWith(chance: ((spec.chance ?? 0) + bonus).clamp(0.0, 1.0));
+        return spec.copyWith(
+            chance: ((spec.chance ?? 0) + bonus).clamp(0.0, 1.0));
       case 'max_targets':
         return spec.copyWith(maxStack: (spec.maxStack ?? 1) + bonus.round());
       default:
@@ -536,13 +550,16 @@ class Tower extends PositionComponent {
     bool active = false;
     if (key == 'vs.vulnerable_damage_pct' && target.enemyStatus.isVulnerable) {
       active = true;
-    } else if (key == 'vs.slowed_damage_pct' && target.enemyStatus.slowMultiplier < 1.0) {
+    } else if (key == 'vs.slowed_damage_pct' &&
+        target.enemyStatus.slowMultiplier < 1.0) {
       active = true;
     } else if (key == 'vs.frozen_damage_pct' && target.enemyStatus.isFrozen) {
       active = true;
-    } else if (key == 'vs.dot_target_damage_pct' && target.enemyStatus.isInfected) {
+    } else if (key == 'vs.dot_target_damage_pct' &&
+        target.enemyStatus.isInfected) {
       active = true;
-    } else if (key == 'vs.time_dilated_damage_pct' && target.enemyStatus.isTimeDilated) {
+    } else if (key == 'vs.time_dilated_damage_pct' &&
+        target.enemyStatus.isTimeDilated) {
       active = true;
     }
 
@@ -590,8 +607,9 @@ class Tower extends PositionComponent {
 
     switch (gameRef.currentRule) {
       case TargetingRule.nearest:
-        inRange.sort((a, b) =>
-            a.position.distanceTo(position).compareTo(b.position.distanceTo(position)));
+        inRange.sort((a, b) => a.position
+            .distanceTo(position)
+            .compareTo(b.position.distanceTo(position)));
         break;
       case TargetingRule.farthestProgress:
         inRange.sort((a, b) => b.progress.compareTo(a.progress));
@@ -647,7 +665,6 @@ class Tower extends PositionComponent {
     currentSprite = rightDownSprite;
   }
 
-
   void _applyStatsFromState() {
     final baseDamage = def.baseDamage * state.permanentDamageMultiplier;
     final baseFireRate = def.fireRate * state.permanentFireRateMultiplier;
@@ -662,7 +679,10 @@ class Tower extends PositionComponent {
             state.moduleFireRateMultiplier *
             state.lobbyFireRateMultiplier)
         .clamp(0.15, 10.0);
-    range = baseRange + state.rangeBonus + state.moduleRangeBonus + def.range * state.lobbyRangePercent;
+    range = baseRange +
+        state.rangeBonus +
+        state.moduleRangeBonus +
+        def.range * state.lobbyRangePercent;
   }
 }
 
@@ -729,16 +749,17 @@ class TowerRuntimeState {
   void _applyPermanentLevel(int level) {
     final lv = level.clamp(1, 15);
     final bonusLevel = lv - 1;
-    permanentDamageMultiplier = 1.0 + bonusLevel * growthConfig.damagePercentPerLevel;
+    permanentDamageMultiplier =
+        1.0 + bonusLevel * growthConfig.damagePercentPerLevel;
     // fireRate is attack interval(seconds), so lower is faster.
     permanentFireRateMultiplier =
-        (1.0 - bonusLevel * growthConfig.fireRatePercentPerLevel).clamp(0.35, 1.0);
+        (1.0 - bonusLevel * growthConfig.fireRatePercentPerLevel)
+            .clamp(0.35, 1.0);
     if (growthConfig.rangeBonusEveryLevels > 0) {
-      permanentRangeBonus =
-          bonusLevel >= growthConfig.rangeBonusEveryLevels
-              ? growthConfig.rangeBonusPerStep *
-                  (bonusLevel ~/ growthConfig.rangeBonusEveryLevels)
-              : 0.0;
+      permanentRangeBonus = bonusLevel >= growthConfig.rangeBonusEveryLevels
+          ? growthConfig.rangeBonusPerStep *
+              (bonusLevel ~/ growthConfig.rangeBonusEveryLevels)
+          : 0.0;
     } else {
       permanentRangeBonus = 0.0;
     }
@@ -802,8 +823,8 @@ class SpawnController extends Component {
     if (waveDef.spawns.isEmpty) return 0;
     var latest = 0.0;
     for (final entry in waveDef.spawns) {
-      final endAt =
-          entry.at + ((entry.count - 1).clamp(0, 9999) * entry.intervalMs / 1000.0);
+      final endAt = entry.at +
+          ((entry.count - 1).clamp(0, 9999) * entry.intervalMs / 1000.0);
       if (endAt > latest) {
         latest = endAt;
       }
@@ -837,5 +858,3 @@ class _HudButtonData {
 
   _HudButtonData(this.towerId, this.name, this.color);
 }
-
-

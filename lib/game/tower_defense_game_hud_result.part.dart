@@ -443,6 +443,7 @@ class ResultOverlay extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
+    _ensureRects();
     final bgPaint = Paint()..color = const Color(0xCC000000);
     canvas.drawRect(size.toRect(), bgPaint);
 
@@ -761,6 +762,7 @@ class ResultOverlay extends PositionComponent {
   }
 
   ResultOverlayAction? hitTest(Vector2 worldPos) {
+    _ensureRects();
     final offset = Offset(worldPos.x, worldPos.y);
     if (_doubleButtonRect?.contains(offset) ?? false) {
       return ResultOverlayAction.doubleReward;
@@ -769,6 +771,25 @@ class ResultOverlay extends PositionComponent {
       return ResultOverlayAction.close;
     }
     return null;
+  }
+
+  void _ensureRects() {
+    final currentSize = gameRef.size;
+    if (currentSize.x <= 0 || currentSize.y <= 0) {
+      return;
+    }
+    if (size != currentSize) {
+      onGameResize(currentSize);
+      return;
+    }
+    if (!gameRef.isInfiniteMode &&
+        (_doubleButtonRect == null || _closeButtonRect == null)) {
+      onGameResize(currentSize);
+      return;
+    }
+    if (gameRef.isInfiniteMode && _closeButtonRect == null) {
+      onGameResize(currentSize);
+    }
   }
 }
 

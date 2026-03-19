@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:tower_defense/data/repositories/account_progress_repository.dart';
 import 'package:tower_defense/data/repositories/balance_repository.dart';
+import 'package:tower_defense/data/repositories/economy_log_repository.dart';
 import 'package:tower_defense/domain/progress/account_progress.dart';
 import 'package:tower_defense/domain/progress/core_progress.dart';
+import 'package:tower_defense/shared/audio_service.dart';
 import 'package:tower_defense/ui/widgets/panel_button.dart';
 
 class BuildingManagementScreen extends StatefulWidget {
@@ -11,18 +15,22 @@ class BuildingManagementScreen extends StatefulWidget {
   const BuildingManagementScreen({super.key, required this.progress});
 
   @override
-  State<BuildingManagementScreen> createState() => _BuildingManagementScreenState();
+  State<BuildingManagementScreen> createState() =>
+      _BuildingManagementScreenState();
 }
 
 class _BuildingManagementScreenState extends State<BuildingManagementScreen> {
   late AccountProgress progress;
   final AccountProgressRepository progressRepo = AccountProgressRepository();
   final BalanceRepository balanceRepo = BalanceRepository();
+  final EconomyLogRepository economyLogRepo = EconomyLogRepository();
   CoreBalanceConfig? coreBalance;
+  bool _isExiting = false;
 
   @override
   void initState() {
     super.initState();
+    unawaited(AppAudioService.instance.playBgm(AudioBgmTrack.lobby));
     progress = widget.progress;
     _loadBalance();
   }
@@ -39,60 +47,151 @@ class _BuildingManagementScreenState extends State<BuildingManagementScreen> {
   }
 
   Future<void> _exitScreen() async {
-    await progressRepo.save(progress);
-    if (!mounted) return;
-    Navigator.of(context).pop(progress);
+    if (_isExiting) return;
+    _isExiting = true;
+    final snapshot = progress.copy();
+    final navigator = Navigator.of(context);
+    unawaited(AppAudioService.instance.stopAllSfx());
+    if (navigator.canPop()) {
+      navigator.pop(snapshot);
+    }
+    unawaited(progressRepo.save(snapshot));
   }
 
-  CoreBalanceConfig get _coreBalance => coreBalance ?? CoreBalanceConfig.fromJson(const {});
-  int get _hpCost => _coreBalance.hp.costForLevel(progress.core.hpLevel);
-  int get _shieldCost => _coreBalance.shield.costForLevel(progress.core.shieldLevel);
-  int get _defenseCost => _coreBalance.defense.costForLevel(progress.core.defenseLevel);
-  bool get _isHpMax => progress.core.hpLevel >= _coreBalance.hp.maxLevel;
-  bool get _isShieldMax => progress.core.shieldLevel >= _coreBalance.shield.maxLevel;
-  bool get _isDefenseMax => progress.core.defenseLevel >= _coreBalance.defense.maxLevel;
+  @override
+  void dispose() {
+    unawaited(AppAudioService.instance.stopAllSfx());
+    super.dispose();
+  }
 
-  void _upgradeHp() {
+  CoreBalanceConfig get _coreBalance =>
+      coreBalance ?? CoreBalanceConfig.fromJson(const {});
+  int get _hpCost => _coreBalance.hp.costForLevel(progress.core.hpLevel);
+  int get _shieldCost =>
+      _coreBalance.shield.costForLevel(progress.core.shieldLevel);
+  int get _defenseCost =>
+      _coreBalance.defense.costForLevel(progress.core.defenseLevel);
+  bool get _isHpMax => progress.core.hpLevel >= _coreBalance.hp.maxLevel;
+  bool get _isShieldMax =>
+      progress.core.shieldLevel >= _coreBalance.shield.maxLevel;
+  bool get _isDefenseMax =>
+      progress.core.defenseLevel >= _coreBalance.defense.maxLevel;
+
+  Future<void> _upgradeHp() async {
     if (_isHpMax) return;
     final balance = _coreBalance;
     final core = progress.core;
     final cost = _hpCost;
+    if (progress.accountGold < cost) {
+      unawaited(AppAudioService.instance.playError());
+      await _showNoticeDialog(
+        title: '골드 부족',
+        body: '내구 보강 강화에는 ${_fmtInt(cost)} 골드가 필요합니다.',
+      );
+      return;
+    }
+    final previousLevel = core.hpLevel;
     setState(() {
-      if (progress.accountGold < cost) return;
       progress.accountGold -= cost;
       core.hpLevel += 1;
       core.level += 1;
       core.hp = (core.hp * (balance.hp.growthMultiplier ?? 1.04)).round();
     });
+    unawaited(AppAudioService.instance.playTowerUpgrade());
+    if (core.hpLevel != previousLevel) {
+      economyLogRepo.logCurrencyChange(
+        source: 'core_upgrade_hp',
+        currency: 'accountGold',
+        amount: -cost,
+        balanceAfter: progress.accountGold,
+        metadata: {'toLevel': core.hpLevel},
+      );
+      economyLogRepo.logUpgrade(
+        upgradeType: 'core_hp',
+        targetId: 'core',
+        fromLevel: previousLevel,
+        toLevel: core.hpLevel,
+      );
+    }
   }
 
-  void _upgradeShield() {
+  Future<void> _upgradeShield() async {
     if (_isShieldMax) return;
     final balance = _coreBalance;
     final core = progress.core;
     final cost = _shieldCost;
+    if (progress.accountGold < cost) {
+      unawaited(AppAudioService.instance.playError());
+      await _showNoticeDialog(
+        title: '골드 부족',
+        body: '실드 증폭 강화에는 ${_fmtInt(cost)} 골드가 필요합니다.',
+      );
+      return;
+    }
+    final previousLevel = core.shieldLevel;
     setState(() {
-      if (progress.accountGold < cost) return;
       progress.accountGold -= cost;
       core.shieldLevel += 1;
       core.level += 1;
-      core.shield = (core.shield * (balance.shield.growthMultiplier ?? 1.035)).round();
+      core.shield =
+          (core.shield * (balance.shield.growthMultiplier ?? 1.035)).round();
     });
+    unawaited(AppAudioService.instance.playTowerUpgrade());
+    if (core.shieldLevel != previousLevel) {
+      economyLogRepo.logCurrencyChange(
+        source: 'core_upgrade_shield',
+        currency: 'accountGold',
+        amount: -cost,
+        balanceAfter: progress.accountGold,
+        metadata: {'toLevel': core.shieldLevel},
+      );
+      economyLogRepo.logUpgrade(
+        upgradeType: 'core_shield',
+        targetId: 'core',
+        fromLevel: previousLevel,
+        toLevel: core.shieldLevel,
+      );
+    }
   }
 
-  void _upgradeDefense() {
+  Future<void> _upgradeDefense() async {
     if (_isDefenseMax) return;
     final balance = _coreBalance;
     final core = progress.core;
     final cost = _defenseCost;
+    if (progress.accountGold < cost) {
+      unawaited(AppAudioService.instance.playError());
+      await _showNoticeDialog(
+        title: '골드 부족',
+        body: '방어 계수 강화에는 ${_fmtInt(cost)} 골드가 필요합니다.',
+      );
+      return;
+    }
+    final previousLevel = core.defenseLevel;
     setState(() {
-      if (progress.accountGold < cost) return;
       progress.accountGold -= cost;
       core.defenseLevel += 1;
       core.level += 1;
-      core.defenseRate = (core.defenseRate + (balance.defense.flatIncrease ?? 0.005))
-          .clamp(0, balance.defense.cap ?? 0.45);
+      core.defenseRate =
+          (core.defenseRate + (balance.defense.flatIncrease ?? 0.005))
+              .clamp(0, balance.defense.cap ?? 0.45);
     });
+    unawaited(AppAudioService.instance.playTowerUpgrade());
+    if (core.defenseLevel != previousLevel) {
+      economyLogRepo.logCurrencyChange(
+        source: 'core_upgrade_defense',
+        currency: 'accountGold',
+        amount: -cost,
+        balanceAfter: progress.accountGold,
+        metadata: {'toLevel': core.defenseLevel},
+      );
+      economyLogRepo.logUpgrade(
+        upgradeType: 'core_defense',
+        targetId: 'core',
+        fromLevel: previousLevel,
+        toLevel: core.defenseLevel,
+      );
+    }
   }
 
   int _spentGoldForTrack(CoreUpgradeTrack track, int currentLevel) {
@@ -112,6 +211,13 @@ class _BuildingManagementScreenState extends State<BuildingManagementScreen> {
     return (totalSpent * 0.7).round();
   }
 
+  int get _buildingResetFullRefund {
+    final core = progress.core;
+    return _spentGoldForTrack(_coreBalance.hp, core.hpLevel) +
+        _spentGoldForTrack(_coreBalance.shield, core.shieldLevel) +
+        _spentGoldForTrack(_coreBalance.defense, core.defenseLevel);
+  }
+
   Future<void> _resetBuildings() async {
     final core = progress.core;
     if (core.hpLevel == 1 && core.shieldLevel == 1 && core.defenseLevel == 1) {
@@ -122,24 +228,47 @@ class _BuildingManagementScreenState extends State<BuildingManagementScreen> {
       return;
     }
 
-    final refund = _buildingResetRefund;
+    final fullRefund = await _showResetChoiceDialog();
+    if (fullRefund == null) return;
+    final refund = fullRefund ? _buildingResetFullRefund : _buildingResetRefund;
     final ok = await _showConfirmDialog(
-      title: '건물 초기화',
-      body: '사용한 골드의 70%인 ${_fmtInt(refund)} 골드를 반환하고 건물 강화를 초기화합니다.',
-      confirmLabel: '초기화',
+      title: fullRefund ? '광고 초기화' : '건물 초기화',
+      body: fullRefund
+          ? '광고를 보고 사용한 골드 100%인 ${_fmtInt(refund)} 골드를 반환하고 건물 강화를 초기화합니다.'
+          : '사용한 골드의 70%인 ${_fmtInt(refund)} 골드를 반환하고 건물 강화를 초기화합니다.',
+      confirmLabel: fullRefund ? '광고 초기화' : '초기화',
     );
     if (ok != true) return;
 
+    final previousCoreLevel = core.level;
     setState(() {
       progress.accountGold += refund;
       core.level = 1;
-      core.hp = 3000;
-      core.shield = 400;
-      core.defenseRate = 0.10;
+      core.hp = 2600;
+      core.shield = 250;
+      core.defenseRate = 0.05;
       core.hpLevel = 1;
       core.shieldLevel = 1;
       core.defenseLevel = 1;
     });
+    await economyLogRepo.logCurrencyChange(
+      source: fullRefund ? 'core_reset_refund_ad' : 'core_reset_refund',
+      currency: 'accountGold',
+      amount: refund,
+      balanceAfter: progress.accountGold,
+    );
+    if (fullRefund) {
+      await economyLogRepo.logAdReward(
+        placement: 'building_reset_full_refund',
+        reward: {'accountGold': refund},
+      );
+    }
+    await economyLogRepo.logUpgrade(
+      upgradeType: 'core_reset',
+      targetId: 'core',
+      fromLevel: previousCoreLevel,
+      toLevel: 1,
+    );
   }
 
   @override
@@ -441,7 +570,8 @@ class _BuildingManagementScreenState extends State<BuildingManagementScreen> {
               ),
               const SizedBox(width: 10),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: accent.withOpacity(0.14),
                   borderRadius: BorderRadius.circular(12),
@@ -476,7 +606,8 @@ class _BuildingManagementScreenState extends State<BuildingManagementScreen> {
                   label: isMax ? 'MAX' : '강화 (${_fmtInt(cost)})',
                   borderColor: const Color(0xFF83B5FF),
                   foregroundColor: const Color(0xFFF3F7FF),
-                  backgroundColor: isMax ? const Color(0x80506A7A) : const Color(0xCC17304B),
+                  backgroundColor:
+                      isMax ? const Color(0x80506A7A) : const Color(0xCC17304B),
                   compact: true,
                   onPressed: isMax ? null : onPressed,
                 ),
@@ -505,6 +636,7 @@ class _BuildingManagementScreenState extends State<BuildingManagementScreen> {
     required String title,
     required String body,
   }) async {
+    unawaited(AppAudioService.instance.playPopupOpen());
     await showDialog<void>(
       context: context,
       builder: (context) => Dialog(
@@ -553,6 +685,98 @@ class _BuildingManagementScreenState extends State<BuildingManagementScreen> {
                 backgroundColor: const Color(0xCC17304B),
                 compact: true,
                 onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<bool?> _showResetChoiceDialog() async {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF102033),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF83B5FF), width: 1.4),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x66000000),
+                blurRadius: 20,
+                offset: Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.refresh_rounded,
+                  color: Color(0xFFFFC857), size: 30),
+              const SizedBox(height: 10),
+              const Text(
+                '초기화 방식 선택',
+                style: TextStyle(
+                  color: Color(0xFFF3F7FF),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '일반 초기화는 70% 환불, 광고 초기화는 100% 환불을 제공합니다.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFFD9E7FF),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  height: 1.35,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppPanelButton(
+                      label: '닫기',
+                      borderColor: const Color(0xFF83B5FF),
+                      foregroundColor: const Color(0xFFF3F7FF),
+                      backgroundColor: const Color(0x99122336),
+                      compact: true,
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppPanelButton(
+                      label: '일반 초기화',
+                      borderColor: const Color(0xFF83B5FF),
+                      foregroundColor: const Color(0xFFF3F7FF),
+                      backgroundColor: const Color(0x80502A2A),
+                      compact: true,
+                      onPressed: () => Navigator.of(context).pop(false),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: AppPanelButton(
+                      label: '광고 초기화',
+                      borderColor: const Color(0xFF83B5FF),
+                      foregroundColor: const Color(0xFFF3F7FF),
+                      backgroundColor: const Color(0xCC14405C),
+                      compact: true,
+                      onPressed: () => Navigator.of(context).pop(true),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

@@ -22,13 +22,13 @@
                     {
                         "type":  "vulnerability",
                         "value":  0.14,
-                        "durationSec":  3.0,
+                        "durationSec":  3.4,
                         "atLevel":  1
                     },
                     {
                         "type":  "vulnerability",
                         "value":  0.24,
-                        "durationSec":  3.2,
+                        "durationSec":  3.6,
                         "chance":  0.35,
                         "atLevel":  7
                     }

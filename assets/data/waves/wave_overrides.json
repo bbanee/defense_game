@@ -1,5 +1,141 @@
 {
-  "easy": {},
+  "easy": {
+    "41": {
+      "hpMultiplierBonus": 1.12,
+      "speedMultiplierBonus": 1.03,
+      "modifySpawns": [
+        { "enemyId": "grunt_basic", "countDelta": 2 },
+        { "enemyId": "armored_basic", "countDelta": 1 },
+        { "enemyId": "elite_basic", "countDelta": 1 }
+      ],
+      "addSpawns": [
+        { "enemyId": "swarm_basic", "at": 19.2, "count": 8, "intervalMs": 210 }
+      ]
+    },
+    "42": {
+      "hpMultiplierBonus": 1.14,
+      "speedMultiplierBonus": 1.035,
+      "modifySpawns": [
+        { "enemyId": "grunt_basic", "countDelta": 2 },
+        { "enemyId": "spitter_basic", "countDelta": 1 },
+        { "enemyId": "armored_basic", "countDelta": 1 },
+        { "enemyId": "elite_basic", "countDelta": 1 }
+      ],
+      "addSpawns": [
+        { "enemyId": "armored_basic", "at": 18.4, "count": 2, "intervalMs": 900 }
+      ]
+    },
+    "43": {
+      "hpMultiplierBonus": 1.16,
+      "speedMultiplierBonus": 1.04,
+      "modifySpawns": [
+        { "enemyId": "grunt_basic", "countDelta": 3 },
+        { "enemyId": "swarm_basic", "countDelta": 3, "matchAt": 11.0 },
+        { "enemyId": "armored_basic", "countDelta": 1 },
+        { "enemyId": "elite_basic", "countDelta": 1 }
+      ],
+      "addSpawns": [
+        { "enemyId": "spitter_basic", "at": 18.0, "count": 2, "intervalMs": 860 }
+      ]
+    },
+    "44": {
+      "hpMultiplierBonus": 1.18,
+      "speedMultiplierBonus": 1.045,
+      "modifySpawns": [
+        { "enemyId": "grunt_basic", "countDelta": 3 },
+        { "enemyId": "spitter_basic", "countDelta": 1 },
+        { "enemyId": "armored_basic", "countDelta": 2 },
+        { "enemyId": "elite_basic", "countDelta": 1 }
+      ],
+      "addSpawns": [
+        { "enemyId": "swarm_basic", "at": 19.0, "count": 10, "intervalMs": 200 }
+      ]
+    },
+    "45": {
+      "hpMultiplierBonus": 1.20,
+      "speedMultiplierBonus": 1.05,
+      "modifySpawns": [
+        { "enemyId": "grunt_basic", "countDelta": 4 },
+        { "enemyId": "sprinter_basic", "countDelta": 2 },
+        { "enemyId": "armored_basic", "countDelta": 2 },
+        { "enemyId": "elite_basic", "countDelta": 1 }
+      ],
+      "addSpawns": [
+        { "enemyId": "armored_basic", "at": 18.6, "count": 2, "intervalMs": 880 },
+        { "enemyId": "spitter_basic", "at": 20.0, "count": 2, "intervalMs": 820 }
+      ]
+    },
+    "46": {
+      "hpMultiplierBonus": 1.22,
+      "speedMultiplierBonus": 1.055,
+      "modifySpawns": [
+        { "enemyId": "grunt_basic", "countDelta": 4 },
+        { "enemyId": "spitter_basic", "countDelta": 2 },
+        { "enemyId": "armored_basic", "countDelta": 2 },
+        { "enemyId": "elite_basic", "countDelta": 1 }
+      ],
+      "addSpawns": [
+        { "enemyId": "elite_basic", "at": 18.8, "count": 2, "intervalMs": 1180 }
+      ]
+    },
+    "47": {
+      "hpMultiplierBonus": 1.24,
+      "speedMultiplierBonus": 1.06,
+      "modifySpawns": [
+        { "enemyId": "grunt_basic", "countDelta": 4 },
+        { "enemyId": "swarm_basic", "countDelta": 4, "matchAt": 11.0 },
+        { "enemyId": "armored_basic", "countDelta": 2 },
+        { "enemyId": "elite_basic", "countDelta": 2 }
+      ],
+      "addSpawns": [
+        { "enemyId": "armored_basic", "at": 18.2, "count": 3, "intervalMs": 860 }
+      ]
+    },
+    "48": {
+      "hpMultiplierBonus": 1.26,
+      "speedMultiplierBonus": 1.065,
+      "modifySpawns": [
+        { "enemyId": "grunt_basic", "countDelta": 5 },
+        { "enemyId": "spitter_basic", "countDelta": 2 },
+        { "enemyId": "armored_basic", "countDelta": 2 },
+        { "enemyId": "elite_basic", "countDelta": 2 }
+      ],
+      "addSpawns": [
+        { "enemyId": "swarm_basic", "at": 19.4, "count": 12, "intervalMs": 190 },
+        { "enemyId": "elite_basic", "at": 21.0, "count": 1, "intervalMs": 1200 }
+      ]
+    },
+    "49": {
+      "hpMultiplierBonus": 1.28,
+      "speedMultiplierBonus": 1.07,
+      "modifySpawns": [
+        { "enemyId": "grunt_basic", "countDelta": 5 },
+        { "enemyId": "sprinter_basic", "countDelta": 2 },
+        { "enemyId": "armored_basic", "countDelta": 3 },
+        { "enemyId": "elite_basic", "countDelta": 2 }
+      ],
+      "addSpawns": [
+        { "enemyId": "armored_basic", "at": 18.0, "count": 3, "intervalMs": 840 },
+        { "enemyId": "spitter_basic", "at": 20.4, "count": 3, "intervalMs": 800 }
+      ]
+    },
+    "50": {
+      "hpMultiplierBonus": 1.32,
+      "speedMultiplierBonus": 1.08,
+      "modifySpawns": [
+        { "enemyId": "grunt_basic", "countDelta": 4 },
+        { "enemyId": "sprinter_basic", "countDelta": 2 },
+        { "enemyId": "armored_basic", "countDelta": 2 },
+        { "enemyId": "elite_basic", "countDelta": 2 }
+      ],
+      "addSpawns": [
+        { "enemyId": "boss_basic", "at": 11.4, "count": 1, "intervalMs": 0 },
+        { "enemyId": "armored_basic", "at": 9.2, "count": 3, "intervalMs": 860 },
+        { "enemyId": "spitter_basic", "at": 13.6, "count": 3, "intervalMs": 820 },
+        { "enemyId": "swarm_basic", "at": 15.2, "count": 12, "intervalMs": 180 }
+      ]
+    }
+  },
   "normal": {},
   "hard": {}
 }

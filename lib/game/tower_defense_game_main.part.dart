@@ -1,12 +1,13 @@
-﻿part of 'tower_defense_game.dart';
+part of 'tower_defense_game.dart';
 
 class TowerDefenseGame extends FlameGame with TapCallbacks {
   static const int maxPlacedTowers = 10;
-  static const bool showDebugUi = false;
+  static const bool showDebugUi = true;
   final VoidCallback? onExitToLobby;
   final String difficultyId;
   final String stageId;
   final AccountProgress accountProgress;
+  final bool showDamage;
   final math.Random rng = math.Random();
 
   TowerDefenseGame({
@@ -14,6 +15,7 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     required this.difficultyId,
     required this.stageId,
     required this.accountProgress,
+    required this.showDamage,
   });
   late int gridWidth;
   late int gridHeight;
@@ -219,6 +221,10 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
 
   @override
   void update(double dt) {
+    if (defeated || victory) {
+      super.update(dt);
+      return;
+    }
     final scaledDt = dt * timeScale;
     const maxStep = 1 / 30;
     var remaining = scaledDt;
@@ -362,14 +368,19 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     if (def == null) return;
     if (!_isTowerUnlocked(def.id)) return;
     if (towers.length >= maxPlacedTowers) {
+      unawaited(AppAudioService.instance.playTowerPlaceFail());
       if (buildLimitNoticeCooldown <= 0) {
-        spawnBattleNotice('타워는 최대 ${TowerDefenseGame.maxPlacedTowers}개까지 설치할 수 있습니다.');
+        spawnBattleNotice(
+            '타워는 최대 ${TowerDefenseGame.maxPlacedTowers}개까지 설치할 수 있습니다.');
         buildLimitNoticeCooldown = 0.8;
       }
       return;
     }
     final cost = (def.buildCost * difficultyDef.buildCostMultiplier).round();
-    if (battleGold < cost) return;
+    if (battleGold < cost) {
+      unawaited(AppAudioService.instance.playTowerPlaceFail());
+      return;
+    }
     battleGold -= cost;
     final tower = Tower(
       gameRef: this,
@@ -385,6 +396,7 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
       highestPlacedTowerCount = towers.length;
     }
     add(tower);
+    unawaited(AppAudioService.instance.playTowerPlace());
   }
 
   bool _isTowerUnlocked(String towerId) {
@@ -435,6 +447,9 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
       if (battleGold >= cost) {
         battleGold -= cost;
         tower.upgrade();
+        unawaited(AppAudioService.instance.playTowerUpgrade());
+      } else {
+        unawaited(AppAudioService.instance.playTowerPlaceFail());
       }
     } else if (action == TowerAction.sell) {
       final refund = tower.sellRefund;
@@ -474,17 +489,18 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
 
   void spawnEnemy(EnemyType type, EnemyDef def) {
     final waveNumber = displayedWaveNumber;
+    final waveDef = waves[currentWaveIndex];
     final enemy = Enemy(
       gameRef: this,
       type: type,
       def: def,
       path: path,
-      hpMultiplier:
-          difficultyDef.hpMultiplier *
-          waveScalingConfig.hpMultiplierForWave(waveNumber),
-      speedMultiplier:
-          difficultyDef.speedMultiplier *
-          waveScalingConfig.speedMultiplierForWave(waveNumber),
+      hpMultiplier: difficultyDef.hpMultiplier *
+          waveScalingConfig.hpMultiplierForWave(waveNumber) *
+          waveDef.hpMultiplierBonus,
+      speedMultiplier: difficultyDef.speedMultiplier *
+          waveScalingConfig.speedMultiplierForWave(waveNumber) *
+          waveDef.speedMultiplierBonus,
       rewardMultiplier: waveScalingConfig.rewardMultiplierForWave(waveNumber),
     );
     enemies.add(enemy);
@@ -516,6 +532,7 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
       core.setStats(coreHp, coreMaxHp, coreShield, coreMaxShield);
       return;
     }
+    unawaited(AppAudioService.instance.playCoreHit());
     final reduced = amount * (1.0 - coreDefenseRate).clamp(0.0, 1.0);
     var remaining = reduced;
     if (coreShield > 0) {
@@ -545,7 +562,8 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     add(effect);
   }
 
-  void spawnTowerSpecialEffect(String towerId, Enemy target, {double scale = 1.0}) {
+  void spawnTowerSpecialEffect(String towerId, Enemy target,
+      {double scale = 1.0}) {
     final effect = EnemyAttachedTowerEffect(
       gameRef: this,
       target: target,
@@ -556,6 +574,7 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
   }
 
   void spawnDamageText(Vector2 worldPos, double amount) {
+    if (!showDamage) return;
     String text;
     if (amount >= 1000) {
       text = (amount / 1000).toStringAsFixed(amount >= 10000 ? 0 : 1) + 'K';
@@ -610,7 +629,8 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     add(effect);
   }
 
-  void spawnEnemyEffect(EnemyType type, Vector2 worldPos, {double scale = 1.0}) {
+  void spawnEnemyEffect(EnemyType type, Vector2 worldPos,
+      {double scale = 1.0}) {
     final path = _enemyEffectPath(type);
     final size = Vector2(tileSize * 0.9 * scale, tileSize * 0.9 * scale);
     final effect = TowerEffect(
@@ -675,6 +695,10 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
       waveClearRewarded = false;
       waveAdvanceDelayTimer = 0;
       spawner.resetWith(waves[currentWaveIndex]);
+      if (_waveHasBoss(waves[currentWaveIndex])) {
+        unawaited(AppAudioService.instance.playBossAlert());
+        unawaited(AppAudioService.instance.playBossAlertStinger());
+      }
       return;
     }
     if (currentWaveIndex >= waves.length - 1) {
@@ -694,18 +718,41 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     waveClearRewarded = false;
     waveAdvanceDelayTimer = 0;
     spawner.resetWith(waves[currentWaveIndex]);
+    if (_waveHasBoss(waves[currentWaveIndex])) {
+      unawaited(AppAudioService.instance.playBossAlert());
+      unawaited(AppAudioService.instance.playBossAlertStinger());
+    }
+  }
+
+  bool _waveHasBoss(WaveDef wave) {
+    return wave.spawns.any((spawn) => spawn.enemyId == 'boss_basic');
   }
 
   bool _isWinCondition(String key) => modeDef.winCondition == key;
   bool _isLoseCondition(String key) => modeDef.loseCondition == key;
   bool get isInfiniteMode => modeDef.id == 'endless_survival';
-  int get displayedWaveNumber => isInfiniteMode ? infiniteWaveNumber : currentWaveIndex + 1;
+  int get displayedWaveNumber =>
+      isInfiniteMode ? infiniteWaveNumber : currentWaveIndex + 1;
 
   void _onVictory() {
     if (victory || defeated) return;
     victory = true;
     spawner.pauseSpawning();
+    timeScale = 1.0;
+    resultActionPending = false;
+    continueOverlay?.removeFromParent();
+    continueOverlay = null;
+    speedAdOverlay?.removeFromParent();
+    speedAdOverlay = null;
+    _closePicker();
+    _closeTowerPanel();
+    unawaited(AppAudioService.instance.stopBgm());
+    unawaited(AppAudioService.instance.stopAllSfx());
+    unawaited(AppAudioService.instance.playVictoryJingle());
     unawaited(_grantEndRewardsIfNeeded());
+    if (!isInfiniteMode) {
+      unawaited(_saveStageRankingIfNeeded());
+    }
     resultOverlay = ResultOverlay(
       gameRef: this,
       title: '승리',
@@ -717,15 +764,28 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
 
   void _showDefeatResult() {
     defeated = true;
+    spawner.pauseSpawning();
+    timeScale = 1.0;
+    resultActionPending = false;
+    continueOverlay?.removeFromParent();
+    continueOverlay = null;
+    speedAdOverlay?.removeFromParent();
+    speedAdOverlay = null;
+    _closePicker();
+    _closeTowerPanel();
     for (final enemy in enemies) {
       enemy.removeFromParent();
     }
     enemies.clear();
+    unawaited(AppAudioService.instance.stopBgm());
+    unawaited(AppAudioService.instance.stopAllSfx());
+    unawaited(AppAudioService.instance.playDefeatJingle());
     if (isInfiniteMode) {
       finalInfiniteScore = _calculateInfiniteScore();
       unawaited(_saveInfiniteScoreIfNeeded());
     } else {
       unawaited(_grantEndRewardsIfNeeded());
+      unawaited(_saveStageRankingIfNeeded());
     }
     resultOverlay = ResultOverlay(
       gameRef: this,
@@ -740,6 +800,7 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     continueUsed = true;
     continueOverlay?.removeFromParent();
     continueOverlay = null;
+    unawaited(AppAudioService.instance.stopAllSfx());
     for (final enemy in enemies) {
       enemy.removeFromParent();
     }
@@ -824,6 +885,12 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     enemyKillScore += _killScoreForEnemy(def);
   }
 
+  String get rankingPlayerName {
+    final nickname = accountProgress.nickname.trim();
+    if (nickname.isEmpty) return 'PLAYER';
+    return nickname;
+  }
+
   int _calculateInfiniteScore() {
     final reached = displayedWaveNumber;
     final waveScore = reached * 1000;
@@ -834,7 +901,8 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     final coreBonus = (hpRatio * 2000).round() + (shieldRatio * 1000).round();
     final installRatio = TowerDefenseGame.maxPlacedTowers <= 0
         ? 1.0
-        : (highestPlacedTowerCount / TowerDefenseGame.maxPlacedTowers).clamp(0.0, 1.0);
+        : (highestPlacedTowerCount / TowerDefenseGame.maxPlacedTowers)
+            .clamp(0.0, 1.0);
     final installBonus = ((1.0 - installRatio) * (reached * 120)).round();
     return waveScore + enemyKillScore + waveBonus + coreBonus + installBonus;
   }
@@ -870,7 +938,6 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     if (isInfiniteMode || stageRankingSaved || stageDef.id == 'test_u_stage') {
       return;
     }
-    stageRankingSaved = true;
     final reached = (currentWaveIndex + 1).clamp(0, waves.length);
     if (reached <= 0) {
       return;
@@ -882,11 +949,16 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
       'nightmare' => '나이트메어',
       _ => difficultyId,
     };
-    await RankingRepository().addStageScore(
-      'PLAYER',
+    final rankingRepo = RankingRepository();
+    if (!rankingRepo.hasAuthenticatedUser) {
+      return;
+    }
+    await rankingRepo.addStageScore(
+      rankingPlayerName,
       reached,
       detail: difficultyLabel,
     );
+    stageRankingSaved = true;
   }
 
   Future<void> _doubleEndRewards() async {
@@ -908,34 +980,73 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
   }
 
   Future<void> _saveInfiniteScoreIfNeeded() async {
-    if (!isInfiniteMode || infiniteScoreSaved || stageDef.id == 'test_u_stage') {
+    if (!isInfiniteMode ||
+        infiniteScoreSaved ||
+        stageDef.id == 'test_u_stage') {
       return;
     }
-    infiniteScoreSaved = true;
     final reached = displayedWaveNumber;
     if (reached > accountProgress.bestInfiniteWave) {
       accountProgress.bestInfiniteWave = reached;
     }
-    await RankingRepository().addInfiniteScore('PLAYER', finalInfiniteScore);
+    final rankingRepo = RankingRepository();
+    if (!rankingRepo.hasAuthenticatedUser) {
+      return;
+    }
+    await rankingRepo.addInfiniteScore(
+      rankingPlayerName,
+      finalInfiniteScore,
+    );
+    infiniteScoreSaved = true;
     await AccountProgressRepository().save(accountProgress);
   }
 
   Future<void> _handleResultOverlayAction(ResultOverlayAction action) async {
+    final reachedWave = isInfiniteMode
+        ? displayedWaveNumber
+        : (currentWaveIndex + 1).clamp(0, waves.length);
     if (isInfiniteMode) {
-      await _saveInfiniteScoreIfNeeded();
+      unawaited(_saveInfiniteScoreIfNeeded());
+      unawaited(AnalyticsRepository().logBattleResult(
+        playerName: rankingPlayerName,
+        mode: 'infinite',
+        difficultyId: difficultyId,
+        stageId: stageDef.id,
+        reachedWave: reachedWave,
+        victory: false,
+        accountGoldReward: 0,
+        ticketReward: 0,
+        infiniteScore: finalInfiniteScore,
+        highestPlacedTowerCount: highestPlacedTowerCount,
+        usedContinue: continueUsed,
+      ));
       onExitToLobby?.call();
       return;
     }
-    await _saveStageRankingIfNeeded();
+    unawaited(_saveStageRankingIfNeeded());
     if (action == ResultOverlayAction.doubleReward) {
-      await _doubleEndRewards();
+      unawaited(_doubleEndRewards());
     } else {
-      await _grantEndRewardsIfNeeded();
+      unawaited(_grantEndRewardsIfNeeded());
     }
+    unawaited(AnalyticsRepository().logBattleResult(
+      playerName: rankingPlayerName,
+      mode: 'story',
+      difficultyId: difficultyId,
+      stageId: stageDef.id,
+      reachedWave: reachedWave,
+      victory: victory,
+      accountGoldReward: endRewardsDoubled ? endRewardGold * 2 : endRewardGold,
+      ticketReward: endRewardsDoubled ? endRewardTickets * 2 : endRewardTickets,
+      infiniteScore: 0,
+      highestPlacedTowerCount: highestPlacedTowerCount,
+      usedContinue: continueUsed,
+    ));
     onExitToLobby?.call();
   }
 
-  Future<void> _handleContinueOverlayAction(ContinueOverlayAction action) async {
+  Future<void> _handleContinueOverlayAction(
+      ContinueOverlayAction action) async {
     if (action == ContinueOverlayAction.continueAd) {
       _continueFromDefeat();
     } else {
@@ -946,5 +1057,3 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     resultActionPending = false;
   }
 }
-
-

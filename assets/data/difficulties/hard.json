@@ -3,8 +3,8 @@
   "nameKey": "difficulty.hard",
   "hpMultiplier": 2.0,
   "speedMultiplier": 1.14,
-  "rewardMultiplier": 0.85,
-  "startingBattleGold": 340,
+  "rewardMultiplier": 0.56,
+  "startingBattleGold": 500,
   "buildCostMultiplier": 1.7,
   "towerUpgradeCostMultiplier": 2.15,
   "sellRefundMultiplier": 0.38

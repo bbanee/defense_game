@@ -22,13 +22,13 @@
                     {
                         "type":  "pull",
                         "value":  1,
-                        "chance":  0.3,
+                        "chance":  0.42,
                         "atLevel":  1
                     },
                     {
                         "type":  "pull",
                         "value":  1,
-                        "chance":  0.48,
+                        "chance":  0.6,
                         "atLevel":  7
                     }
                 ]

@@ -43,6 +43,7 @@ class TowerProgress {
 }
 
 class AccountProgress {
+  String nickname;
   int accountGold;
   int diamonds;
   int energy;
@@ -85,10 +86,11 @@ class AccountProgress {
   set adShardDrawTenDailyCount(int value) => _adShardDrawTenDailyCount = value;
 
   AccountProgress({
+    this.nickname = '',
     this.accountGold = 0,
     this.diamonds = 0,
-    this.energy = 20,
-    this.maxEnergy = 20,
+    this.energy = 30,
+    this.maxEnergy = 30,
     this.bestInfiniteWave = 0,
     String? lastEnergyAtIso = '',
     String? lastAttendanceDate = '',
@@ -143,10 +145,11 @@ class AccountProgress {
     });
 
     return AccountProgress(
+      nickname: json['nickname'] as String? ?? '',
       accountGold: json['accountGold'] as int? ?? 0,
       diamonds: json['diamonds'] as int? ?? 0,
-      energy: json['energy'] as int? ?? 20,
-      maxEnergy: json['maxEnergy'] as int? ?? 20,
+      energy: json['energy'] as int? ?? 30,
+      maxEnergy: json['maxEnergy'] as int? ?? 30,
       bestInfiniteWave: json['bestInfiniteWave'] as int? ?? 0,
       lastEnergyAtIso: json['lastEnergyAtIso'] as String? ?? '',
       lastAttendanceDate: json['lastAttendanceDate'] as String? ?? '',
@@ -167,6 +170,7 @@ class AccountProgress {
 
   Map<String, dynamic> toJson() {
     return {
+      'nickname': nickname,
       'accountGold': accountGold,
       'diamonds': diamonds,
       'energy': energy,
@@ -203,6 +207,7 @@ class AccountProgress {
     }
 
     return AccountProgress(
+      nickname: nickname,
       accountGold: accountGold,
       diamonds: diamonds,
       energy: energy,

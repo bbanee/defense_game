@@ -1,8 +1,9 @@
 ﻿{
+  "nickname": "",
   "accountGold": 0,
   "diamonds": 1000,
-  "energy": 20,
-  "maxEnergy": 20,
+  "energy": 30,
+  "maxEnergy": 30,
   "lastEnergyAtIso": "",
   "lastAttendanceDate": "",
   "attendanceDay": 0,
@@ -15,9 +16,9 @@
   "adShardDrawTenDailyCount": 0,
   "core": {
     "level": 1,
-    "hp": 3000,
-    "shield": 400,
-    "defenseRate": 0.1,
+    "hp": 2600,
+    "shield": 250,
+    "defenseRate": 0.05,
     "hpLevel": 1,
     "shieldLevel": 1,
     "defenseLevel": 1

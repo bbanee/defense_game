@@ -1,17 +1,20 @@
-﻿import 'dart:math' as math;
+import 'dart:async';
+
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:tower_defense/data/definition_repository.dart';
 import 'package:tower_defense/data/repositories/account_progress_repository.dart';
 import 'package:tower_defense/data/repositories/balance_repository.dart';
+import 'package:tower_defense/data/repositories/economy_log_repository.dart';
 import 'package:tower_defense/domain/models/definitions.dart';
 import 'package:tower_defense/domain/progress/account_progress.dart';
 import 'package:tower_defense/domain/progress/lobby_upgrade_progress.dart';
+import 'package:tower_defense/shared/audio_service.dart';
 import 'package:tower_defense/shared/tower_visual_fx.dart';
 import 'package:tower_defense/ui/widgets/panel_button.dart';
 
 part 'tower_management_screen_view.part.dart';
 part 'tower_management_screen_logic.part.dart';
-
 
 const List<String> kTowerIds = [
   'cannon_basic',
@@ -98,15 +101,24 @@ class _TowerManagementScreenState extends State<TowerManagementScreen> {
   final BalanceRepository balanceRepo = BalanceRepository();
   final Map<String, TowerDef> towerDefs = {};
   final AccountProgressRepository progressRepo = AccountProgressRepository();
+  final EconomyLogRepository economyLogRepo = EconomyLogRepository();
   Map<String, dynamic>? lobbyConfig;
   Map<String, dynamic>? lobbyPresets;
   BalanceConfig? balanceConfig;
+  bool _isExiting = false;
 
   @override
   void initState() {
     super.initState();
+    unawaited(AppAudioService.instance.playBgm(AudioBgmTrack.lobby));
     progress = widget.progress;
     _loadDefs();
+  }
+
+  @override
+  void dispose() {
+    unawaited(AppAudioService.instance.stopAllSfx());
+    super.dispose();
   }
 
   Future<void> _loadDefs() async {
@@ -155,14 +167,18 @@ class _TowerManagementScreenState extends State<TowerManagementScreen> {
       config = await repo.loadLobbyUpgradeConfig();
       presets = await repo.loadLobbyUpgradePresets();
       final defaultState = await repo.loadLobbyUpgradeDefaultState();
-      final rawDefault = defaultState['playerLobbyUpgrades'] as Map<String, dynamic>? ?? {};
+      final rawDefault =
+          defaultState['playerLobbyUpgrades'] as Map<String, dynamic>? ?? {};
       rawDefault.forEach((towerId, value) {
-        if (value is Map<String, dynamic> && !progress.lobbyUpgrades.containsKey(towerId)) {
-          progress.lobbyUpgrades[towerId] = TowerLobbyUpgradeProgress.fromJson(towerId, value);
+        if (value is Map<String, dynamic> &&
+            !progress.lobbyUpgrades.containsKey(towerId)) {
+          progress.lobbyUpgrades[towerId] =
+              TowerLobbyUpgradeProgress.fromJson(towerId, value);
         }
       });
       for (final towerId in kTowerIds) {
-        final p = progress.towers[towerId] ?? TowerProgress(towerId: towerId, unlocked: false);
+        final p = progress.towers[towerId] ??
+            TowerProgress(towerId: towerId, unlocked: false);
         final lp = progress.lobbyUpgrades[towerId] ??
             TowerLobbyUpgradeProgress(towerId: towerId);
         _normalizeLobbyPoints(p, lp, (config['maxTrackLevel'] as int?) ?? 15);
@@ -170,10 +186,14 @@ class _TowerManagementScreenState extends State<TowerManagementScreen> {
         progress.lobbyUpgrades[towerId] = lp;
       }
     } catch (_) {
-      config = {'maxTrackLevel': 15, 'costCurve': {'base': 10, 'growth': 1.22, 'rarityMultiplier': {}}};
+      config = {
+        'maxTrackLevel': 15,
+        'costCurve': {'base': 10, 'growth': 1.22, 'rarityMultiplier': {}}
+      };
       presets = const {'towers': {}};
       for (final towerId in kTowerIds) {
-        final p = progress.towers[towerId] ?? TowerProgress(towerId: towerId, unlocked: false);
+        final p = progress.towers[towerId] ??
+            TowerProgress(towerId: towerId, unlocked: false);
         final lp = progress.lobbyUpgrades[towerId] ??
             TowerLobbyUpgradeProgress(towerId: towerId);
         _normalizeLobbyPoints(p, lp, 15);
@@ -191,9 +211,14 @@ class _TowerManagementScreenState extends State<TowerManagementScreen> {
   }
 
   Future<void> _exitScreen() async {
-    await progressRepo.save(progress);
-    if (!mounted) return;
-    Navigator.of(context).pop(progress);
+    if (_isExiting) return;
+    _isExiting = true;
+    final snapshot = progress.copy();
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop(snapshot);
+    }
+    unawaited(progressRepo.save(snapshot));
   }
 
   @override
@@ -231,7 +256,8 @@ class _TowerManagementScreenState extends State<TowerManagementScreen> {
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
                         child: Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
                           decoration: BoxDecoration(
                             color: const Color(0xCC142238),
                             borderRadius: BorderRadius.circular(14),
@@ -239,7 +265,8 @@ class _TowerManagementScreenState extends State<TowerManagementScreen> {
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.shield_moon, color: Color(0xFF83B5FF)),
+                              const Icon(Icons.shield_moon,
+                                  color: Color(0xFF83B5FF)),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -260,7 +287,8 @@ class _TowerManagementScreenState extends State<TowerManagementScreen> {
                           child: Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: const Color(0xFF83B5FF), width: 2),
+                              border: Border.all(
+                                  color: const Color(0xFF83B5FF), width: 2),
                               gradient: const LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
@@ -272,7 +300,8 @@ class _TowerManagementScreenState extends State<TowerManagementScreen> {
                               child: GridView.builder(
                                 padding: EdgeInsets.zero,
                                 itemCount: orderedIds.length,
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 5,
                                   mainAxisSpacing: 0,
                                   crossAxisSpacing: 0,
@@ -281,7 +310,8 @@ class _TowerManagementScreenState extends State<TowerManagementScreen> {
                                 itemBuilder: (context, index) {
                                   final towerId = orderedIds[index];
                                   final def = towerDefs[towerId];
-                                  if (def == null) return const SizedBox.shrink();
+                                  if (def == null)
+                                    return const SizedBox.shrink();
                                   return _towerGridTile(def);
                                 },
                               ),
@@ -306,5 +336,4 @@ class _TowerManagementScreenState extends State<TowerManagementScreen> {
       ),
     );
   }
-
 }

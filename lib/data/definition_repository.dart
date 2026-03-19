@@ -122,6 +122,8 @@ class DefinitionRepository {
       id: id,
       spawns: spawns,
       waveClearReward: reward,
+      hpMultiplierBonus: 1.0,
+      speedMultiplierBonus: 1.0,
     );
   }
 
@@ -175,6 +177,12 @@ class DefinitionRepository {
       spawns: spawns,
       waveClearReward:
           waveOverride['waveClearReward'] as int? ?? wave.waveClearReward,
+      hpMultiplierBonus:
+          (waveOverride['hpMultiplierBonus'] as num?)?.toDouble() ??
+              wave.hpMultiplierBonus,
+      speedMultiplierBonus:
+          (waveOverride['speedMultiplierBonus'] as num?)?.toDouble() ??
+              wave.speedMultiplierBonus,
     );
   }
 
@@ -205,7 +213,7 @@ class DefinitionRepository {
         count: (overrideCount ?? (spawn.count + countDelta)).clamp(1, 999),
         intervalMs: overrideInterval ?? spawn.intervalMs,
       );
-    }).toList(growable: false);
+    }).toList(growable: true);
     return next;
   }
 

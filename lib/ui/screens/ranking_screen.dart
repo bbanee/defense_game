@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:tower_defense/data/repositories/ranking_repository.dart';
+import 'package:tower_defense/shared/audio_service.dart';
 import 'package:tower_defense/ui/widgets/panel_button.dart';
 
 class RankingScreen extends StatefulWidget {
@@ -11,6 +14,18 @@ class RankingScreen extends StatefulWidget {
 
 class _RankingScreenState extends State<RankingScreen> {
   int _tabIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(AppAudioService.instance.playBgm(AudioBgmTrack.lobby));
+  }
+
+  @override
+  void dispose() {
+    unawaited(AppAudioService.instance.stopAllSfx());
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +53,26 @@ class _RankingScreenState extends State<RankingScreen> {
             return (stage: stage, infinite: infinite);
           }(),
           builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                !snapshot.hasData) {
+              return const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Color(0xFF8FD3FF),
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      '랭킹 불러오는 중...',
+                      style: TextStyle(color: Color(0xFFD9E7FF)),
+                    ),
+                  ],
+                ),
+              );
+            }
             final stageList = snapshot.data?.stage ?? const [];
             final infiniteList = snapshot.data?.infinite ?? const [];
             return ListView(

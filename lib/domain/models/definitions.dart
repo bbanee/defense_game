@@ -445,11 +445,15 @@ class WaveDef {
   final String id;
   final List<WaveSpawn> spawns;
   final int waveClearReward;
+  final double hpMultiplierBonus;
+  final double speedMultiplierBonus;
 
   const WaveDef({
     required this.id,
     required this.spawns,
     required this.waveClearReward,
+    this.hpMultiplierBonus = 1.0,
+    this.speedMultiplierBonus = 1.0,
   });
 
   factory WaveDef.fromJson(Map<String, dynamic> json) {
@@ -459,6 +463,10 @@ class WaveDef {
           .map((e) => WaveSpawn.fromJson(e as Map<String, dynamic>))
           .toList(),
       waveClearReward: json['waveClearReward'] as int? ?? 0,
+      hpMultiplierBonus:
+          (json['hpMultiplierBonus'] as num?)?.toDouble() ?? 1.0,
+      speedMultiplierBonus:
+          (json['speedMultiplierBonus'] as num?)?.toDouble() ?? 1.0,
     );
   }
 }

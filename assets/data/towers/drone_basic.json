@@ -3,7 +3,7 @@
     "nameKey":  "tower.drone.name",
     "descKey":  "tower.drone.desc",
     "rarity":  "rare",
-    "baseDamage":  13,
+    "baseDamage":  15,
     "fireRate":  1.45,
     "range":  98,
     "attackType":  "projectile",
@@ -22,13 +22,13 @@
                     {
                         "type":  "attack_weaken",
                         "value":  0.28,
-                        "durationSec":  3.0,
+                        "durationSec":  3.4,
                         "atLevel":  1
                     },
                     {
                         "type":  "attack_weaken",
                         "value":  0.42,
-                        "durationSec":  3.5,
+                        "durationSec":  3.9,
                         "chance":  0.35,
                         "atLevel":  7
                     }

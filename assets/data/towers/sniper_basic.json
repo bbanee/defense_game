@@ -4,7 +4,7 @@
     "descKey":  "tower.sniper.desc",
     "rarity":  "unique",
     "baseDamage":  34,
-    "fireRate":  1.5,
+    "fireRate":  1.7,
     "range":  132,
     "attackType":  "hitscan",
     "projectileSpeed":  0,

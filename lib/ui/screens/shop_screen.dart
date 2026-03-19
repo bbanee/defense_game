@@ -3,8 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:tower_defense/data/definition_repository.dart';
 import 'package:tower_defense/data/repositories/account_progress_repository.dart';
+import 'package:tower_defense/data/repositories/economy_log_repository.dart';
 import 'package:tower_defense/domain/models/definitions.dart';
 import 'package:tower_defense/domain/progress/account_progress.dart';
+import 'package:tower_defense/shared/audio_service.dart';
 import 'package:tower_defense/shared/tower_visual_fx.dart';
 import 'package:tower_defense/ui/widgets/panel_button.dart';
 
@@ -59,24 +61,33 @@ class _ShopScreenState extends State<ShopScreen> {
   late AccountProgress progress;
   final DefinitionRepository repo = DefinitionRepository();
   final AccountProgressRepository progressRepo = AccountProgressRepository();
+  final EconomyLogRepository economyLogRepo = EconomyLogRepository();
   GachaBannerDef? banner;
   Map<String, TowerDef> towerDefs = {};
   String? lastResult;
   int _tabIndex = 1;
   Timer? _shardShowcaseTimer;
   int _shardShowcaseIndex = 0;
+  bool _isExiting = false;
+  bool _isDrawing = false;
 
   @override
   void initState() {
     super.initState();
+    unawaited(AppAudioService.instance.playBgm(AudioBgmTrack.lobby));
     progress = widget.progress;
     _ensureStarterTowers();
     _loadData();
   }
 
   void _ensureStarterTowers() {
-    for (final towerId in const ['cannon_basic', 'rapid_basic', 'frost_basic']) {
-      final tower = progress.towers[towerId] ?? TowerProgress(towerId: towerId, unlocked: true);
+    for (final towerId in const [
+      'cannon_basic',
+      'rapid_basic',
+      'frost_basic'
+    ]) {
+      final tower = progress.towers[towerId] ??
+          TowerProgress(towerId: towerId, unlocked: true);
       tower.unlocked = true;
       progress.towers[towerId] = tower;
     }
@@ -98,6 +109,7 @@ class _ShopScreenState extends State<ShopScreen> {
 
   @override
   void dispose() {
+    unawaited(AppAudioService.instance.stopAllSfx());
     _shardShowcaseTimer?.cancel();
     super.dispose();
   }
@@ -105,7 +117,8 @@ class _ShopScreenState extends State<ShopScreen> {
   void _startShardShowcase() {
     _shardShowcaseTimer?.cancel();
     if (towerDefs.isEmpty) return;
-    _shardShowcaseTimer = Timer.periodic(const Duration(milliseconds: 180), (_) {
+    _shardShowcaseTimer =
+        Timer.periodic(const Duration(milliseconds: 180), (_) {
       if (!mounted || towerDefs.isEmpty) return;
       setState(() {
         _shardShowcaseIndex = (_shardShowcaseIndex + 1) % towerDefs.length;
@@ -114,9 +127,15 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   Future<void> _exitScreen() async {
-    await progressRepo.save(progress);
-    if (!mounted) return;
-    Navigator.of(context).pop(progress);
+    if (_isExiting) return;
+    _isExiting = true;
+    final snapshot = progress.copy();
+    final navigator = Navigator.of(context);
+    unawaited(AppAudioService.instance.stopAllSfx());
+    if (navigator.canPop()) {
+      navigator.pop(snapshot);
+    }
+    unawaited(progressRepo.save(snapshot));
   }
 
   @override
@@ -188,12 +207,17 @@ class _ShopScreenState extends State<ShopScreen> {
             if (i > 0) const SizedBox(width: 4),
             Expanded(
               child: InkWell(
-                onTap: () => setState(() => _tabIndex = i),
+                onTap: () {
+                  unawaited(AppAudioService.instance.playTabSwitch());
+                  setState(() => _tabIndex = i);
+                },
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
-                    color: _tabIndex == i ? const Color(0xCC1F3D63) : Colors.transparent,
+                    color: _tabIndex == i
+                        ? const Color(0xCC1F3D63)
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
                     border: _tabIndex == i
                         ? Border.all(color: const Color(0xFF9AC6FF), width: 1.0)
@@ -263,7 +287,8 @@ class _ShopScreenState extends State<ShopScreen> {
               ),
             ),
             const SizedBox(width: 14),
-            const Icon(Icons.confirmation_number, size: 16, color: Color(0xFFF3F7FF)),
+            const Icon(Icons.confirmation_number,
+                size: 16, color: Color(0xFFF3F7FF)),
             const SizedBox(width: 4),
             Text(
               '${progress.shardDrawTickets}',
@@ -298,7 +323,10 @@ class _ShopScreenState extends State<ShopScreen> {
                 foregroundColor: const Color(0xFFF3F7FF),
                 backgroundColor: const Color(0xCC17304B),
                 compact: true,
-                onPressed: () => _handleDraw(count: 1, useCost: true, useTicket: false),
+                onPressed: _isDrawing
+                    ? null
+                    : () =>
+                    _handleDraw(count: 1, useCost: true, useTicket: false),
               ),
             ),
             const SizedBox(width: 8),
@@ -309,7 +337,10 @@ class _ShopScreenState extends State<ShopScreen> {
                 foregroundColor: const Color(0xFFF3F7FF),
                 backgroundColor: const Color(0xCC17304B),
                 compact: true,
-                onPressed: () => _handleDraw(count: 10, useCost: true, useTicket: false),
+                onPressed: _isDrawing
+                    ? null
+                    : () =>
+                    _handleDraw(count: 10, useCost: true, useTicket: false),
               ),
             ),
           ],
@@ -324,7 +355,10 @@ class _ShopScreenState extends State<ShopScreen> {
                 foregroundColor: const Color(0xFFF3F7FF),
                 backgroundColor: const Color(0xCC17304B),
                 compact: true,
-                onPressed: () => _handleDraw(count: 1, useCost: false, useTicket: true),
+                onPressed: _isDrawing
+                    ? null
+                    : () =>
+                    _handleDraw(count: 1, useCost: false, useTicket: true),
               ),
             ),
             const SizedBox(width: 8),
@@ -335,7 +369,10 @@ class _ShopScreenState extends State<ShopScreen> {
                 foregroundColor: const Color(0xFFF3F7FF),
                 backgroundColor: const Color(0xCC17304B),
                 compact: true,
-                onPressed: () => _handleDraw(count: 10, useCost: false, useTicket: true),
+                onPressed: _isDrawing
+                    ? null
+                    : () =>
+                    _handleDraw(count: 10, useCost: false, useTicket: true),
               ),
             ),
           ],
@@ -347,7 +384,14 @@ class _ShopScreenState extends State<ShopScreen> {
           foregroundColor: const Color(0xFFF3F7FF),
           backgroundColor: const Color(0xCC14405C),
           compact: true,
-          onPressed: () => _handleDraw(count: 10, useCost: false, useTicket: false, useAd: true),
+          onPressed: _isDrawing
+              ? null
+              : () => _handleDraw(
+                    count: 10,
+                    useCost: false,
+                    useTicket: false,
+                    useAd: true,
+                  ),
         ),
       ],
     );
@@ -368,9 +412,11 @@ class _ShopScreenState extends State<ShopScreen> {
       );
     }
 
-    final orderedDefs = kShopTowerIds.map((id) => towerDefs[id]).whereType<TowerDef>().toList();
+    final orderedDefs =
+        kShopTowerIds.map((id) => towerDefs[id]).whereType<TowerDef>().toList();
     final current = orderedDefs[_shardShowcaseIndex % orderedDefs.length];
-    final prev = orderedDefs[(_shardShowcaseIndex - 1 + orderedDefs.length) % orderedDefs.length];
+    final prev = orderedDefs[
+        (_shardShowcaseIndex - 1 + orderedDefs.length) % orderedDefs.length];
     final next = orderedDefs[(_shardShowcaseIndex + 1) % orderedDefs.length];
 
     Widget sideCard(TowerDef def, {required Alignment alignment}) {
@@ -386,7 +432,8 @@ class _ShopScreenState extends State<ShopScreen> {
               decoration: BoxDecoration(
                 color: const Color(0x99192B43),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: _rarityColor(def.rarity).withOpacity(0.45)),
+                border: Border.all(
+                    color: _rarityColor(def.rarity).withOpacity(0.45)),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(8),
@@ -445,7 +492,8 @@ class _ShopScreenState extends State<ShopScreen> {
                       return FadeTransition(
                         opacity: curved,
                         child: ScaleTransition(
-                          scale: Tween<double>(begin: 0.88, end: 1).animate(curved),
+                          scale: Tween<double>(begin: 0.88, end: 1)
+                              .animate(curved),
                           child: SlideTransition(
                             position: Tween<Offset>(
                               begin: const Offset(0, 0.08),
@@ -467,10 +515,12 @@ class _ShopScreenState extends State<ShopScreen> {
                           colors: [Color(0xFF1B3553), Color(0xFF12253B)],
                         ),
                         borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: _rarityColor(current.rarity), width: 1.6),
+                        border: Border.all(
+                            color: _rarityColor(current.rarity), width: 1.6),
                         boxShadow: [
                           BoxShadow(
-                            color: _rarityColor(current.rarity).withOpacity(0.18),
+                            color:
+                                _rarityColor(current.rarity).withOpacity(0.18),
                             blurRadius: 14,
                             offset: const Offset(0, 6),
                           ),
@@ -518,8 +568,7 @@ class _ShopScreenState extends State<ShopScreen> {
     if (towerDefs.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
-    final orderedTowerIds = [...kShopTowerIds]
-      ..sort((a, b) {
+    final orderedTowerIds = [...kShopTowerIds]..sort((a, b) {
         final rarityA = _rarityOrder(towerDefs[a]?.rarity);
         final rarityB = _rarityOrder(towerDefs[b]?.rarity);
         if (rarityA != rarityB) return rarityA.compareTo(rarityB);
@@ -545,9 +594,12 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   Widget _towerPurchaseTile(TowerDef def, Color panelBorder) {
-    final tower = progress.towers[def.id] ?? TowerProgress(towerId: def.id, unlocked: false);
+    final tower = progress.towers[def.id] ??
+        TowerProgress(towerId: def.id, unlocked: false);
     progress.towers[def.id] = tower;
     final price = _towerDiamondPrice(def.rarity);
+    final shardPrice = _towerShardPrice(def.rarity);
+    final shardProgress = '${_fmtInt(tower.shards)}/${_fmtInt(shardPrice)}';
     return InkWell(
       onTap: tower.unlocked ? null : () => _showTowerPurchaseDetail(def),
       borderRadius: BorderRadius.circular(16),
@@ -575,10 +627,26 @@ class _ShopScreenState extends State<ShopScreen> {
                     else
                       ColorFiltered(
                         colorFilter: const ColorFilter.matrix(<double>[
-                          0.2126, 0.7152, 0.0722, 0, 0,
-                          0.2126, 0.7152, 0.0722, 0, 0,
-                          0.2126, 0.7152, 0.0722, 0, 0,
-                          0, 0, 0, 1, 0,
+                          0.2126,
+                          0.7152,
+                          0.0722,
+                          0,
+                          0,
+                          0.2126,
+                          0.7152,
+                          0.0722,
+                          0,
+                          0,
+                          0.2126,
+                          0.7152,
+                          0.0722,
+                          0,
+                          0,
+                          0,
+                          0,
+                          0,
+                          1,
+                          0,
                         ]),
                         child: Image.asset(
                           'assets/images/main_towers/${def.id}.png',
@@ -617,19 +685,57 @@ class _ShopScreenState extends State<ShopScreen> {
               ),
             ),
             const SizedBox(height: 6),
-            SizedBox(
-              height: 34,
-              child: AppPanelButton(
-                label: tower.unlocked ? '구매 완료' : 'D ${_fmtInt(price)}',
-                borderColor: tower.unlocked ? const Color(0xFF5AC89D) : panelBorder,
-                foregroundColor: tower.unlocked ? const Color(0xFFDDFBF0) : const Color(0xFFF3F7FF),
-                backgroundColor: tower.unlocked
-                    ? const Color(0xAA174436)
-                    : const Color(0xCC17304B),
-                compact: true,
-                onPressed: tower.unlocked ? null : () => _confirmTowerPurchase(def, price),
+            Text(
+              tower.unlocked ? '보유 완료' : '조각 $shardProgress',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: tower.unlocked
+                    ? const Color(0xFF9FE4BF)
+                    : const Color(0xFFBFD5FF),
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
               ),
             ),
+            const SizedBox(height: 6),
+            if (tower.unlocked)
+              SizedBox(
+                height: 34,
+                child: AppPanelButton(
+                  label: '구매 완료',
+                  borderColor: const Color(0xFF5AC89D),
+                  foregroundColor: const Color(0xFFDDFBF0),
+                  backgroundColor: const Color(0xAA174436),
+                  compact: true,
+                  onPressed: null,
+                ),
+              )
+            else ...[
+              SizedBox(
+                height: 30,
+                child: AppPanelButton(
+                  label: 'D ${_fmtInt(price)}',
+                  borderColor: panelBorder,
+                  foregroundColor: const Color(0xFFF3F7FF),
+                  backgroundColor: const Color(0xCC17304B),
+                  compact: true,
+                  onPressed: () =>
+                      _confirmTowerPurchaseWithDiamonds(def, price),
+                ),
+              ),
+              const SizedBox(height: 4),
+              SizedBox(
+                height: 30,
+                child: AppPanelButton(
+                  label: '조각 ${_fmtInt(shardPrice)}',
+                  borderColor: const Color(0xFF8FD3FF),
+                  foregroundColor: const Color(0xFFF3F7FF),
+                  backgroundColor: const Color(0xCC14405C),
+                  compact: true,
+                  onPressed: () =>
+                      _confirmTowerPurchaseWithShards(def, shardPrice),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -638,6 +744,10 @@ class _ShopScreenState extends State<ShopScreen> {
 
   Future<void> _showTowerPurchaseDetail(TowerDef def) async {
     final price = _towerDiamondPrice(def.rarity);
+    final shardPrice = _towerShardPrice(def.rarity);
+    final tower = progress.towers[def.id] ??
+        TowerProgress(towerId: def.id, unlocked: false);
+    final shardProgress = '${_fmtInt(tower.shards)}/${_fmtInt(shardPrice)}';
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -712,11 +822,29 @@ class _ShopScreenState extends State<ShopScreen> {
                               fontWeight: FontWeight.w800,
                             ),
                           ),
+                          const SizedBox(height: 6),
+                          Text(
+                            tower.unlocked
+                                ? '이미 보유한 타워'
+                                : '보유 조각 $shardProgress',
+                            style: TextStyle(
+                              color: tower.unlocked
+                                  ? const Color(0xFF9FE4BF)
+                                  : const Color(0xFFD9E7FF),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                           const SizedBox(height: 10),
-                          _detailLine('공격력', def.baseDamage.toStringAsFixed(def.baseDamage % 1 == 0 ? 0 : 1)),
-                          _detailLine('공격주기', '${def.fireRate.toStringAsFixed(2)}초'),
+                          _detailLine(
+                              '공격력',
+                              def.baseDamage.toStringAsFixed(
+                                  def.baseDamage % 1 == 0 ? 0 : 1)),
+                          _detailLine(
+                              '공격주기', '${def.fireRate.toStringAsFixed(2)}초'),
                           _detailLine('사거리', def.range.toStringAsFixed(0)),
-                          _detailLine('공격방식', _attackTypeLabelKo(def.attackType)),
+                          _detailLine(
+                              '공격방식', _attackTypeLabelKo(def.attackType)),
                         ],
                       ),
                     ),
@@ -754,17 +882,129 @@ class _ShopScreenState extends State<ShopScreen> {
                         backgroundColor: const Color(0xCC17304B),
                         onPressed: () async {
                           Navigator.of(context).pop();
-                          await _confirmTowerPurchase(def, price);
+                          await _confirmTowerPurchaseWithDiamonds(def, price);
                         },
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 8),
+                AppPanelButton(
+                  label: '조각 ${_fmtInt(shardPrice)}개로 구매',
+                  borderColor: const Color(0xFF83B5FF),
+                  foregroundColor: const Color(0xFFF3F7FF),
+                  backgroundColor: const Color(0xCC14405C),
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    await _confirmTowerPurchaseWithShards(def, shardPrice);
+                  },
                 ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  int _towerShardPrice(String rarity) {
+    return switch (rarity) {
+      'common' => 120,
+      'rare' => 200,
+      'unique' => 320,
+      'legendary' => 500,
+      _ => 200,
+    };
+  }
+
+  Future<void> _confirmTowerPurchaseWithDiamonds(
+      TowerDef def, int price) async {
+    await _confirmTowerPurchase(def, diamondPrice: price);
+  }
+
+  Future<void> _confirmTowerPurchaseWithShards(
+      TowerDef def, int shardPrice) async {
+    await _confirmTowerPurchase(def, shardPrice: shardPrice);
+  }
+
+  Future<void> _confirmTowerPurchase(
+    TowerDef def, {
+    int? diamondPrice,
+    int? shardPrice,
+  }) async {
+    final tower = progress.towers[def.id] ??
+        TowerProgress(towerId: def.id, unlocked: false);
+    progress.towers[def.id] = tower;
+    if (tower.unlocked) {
+      await _showNoticeDialog(title: '알림', body: '이미 구매한 타워입니다.');
+      return;
+    }
+
+    final usingDiamonds = diamondPrice != null;
+    if (usingDiamonds) {
+      if (progress.diamonds < diamondPrice) {
+        await _showNoticeDialog(title: '알림', body: '다이아가 부족합니다.');
+        return;
+      }
+    } else {
+      if (tower.shards < (shardPrice ?? 0)) {
+        await _showNoticeDialog(
+          title: '알림',
+          body: '${_towerDisplayNameKo(def.id)} 구매에 필요한 조각이 부족합니다.',
+        );
+        return;
+      }
+    }
+
+    final ok = await _showConfirmDialog(
+      title: '타워 구매',
+      body: usingDiamonds
+          ? '${_towerDisplayNameKo(def.id)}를 다이아 ${_fmtInt(diamondPrice!)}개로 구매하시겠습니까?'
+          : '${_towerDisplayNameKo(def.id)}를 조각 ${_fmtInt(shardPrice!)}개로 구매하시겠습니까?',
+      confirmLabel: '구매',
+    );
+    if (ok != true) return;
+
+    setState(() {
+      tower.unlocked = true;
+      if (usingDiamonds) {
+        progress.diamonds -= diamondPrice!;
+      } else {
+        tower.shards -= shardPrice!;
+      }
+    });
+    await progressRepo.save(progress);
+    if (usingDiamonds) {
+      await economyLogRepo.logCurrencyChange(
+        source: 'shop_tower_purchase',
+        currency: 'diamonds',
+        amount: -diamondPrice!,
+        balanceAfter: progress.diamonds,
+        metadata: {'towerId': def.id},
+      );
+    } else {
+      await economyLogRepo.logCurrencyChange(
+        source: 'shop_tower_purchase_shards',
+        currency: 'towerShards',
+        amount: -shardPrice!,
+        balanceAfter: tower.shards,
+        metadata: {'towerId': def.id},
+      );
+    }
+    await economyLogRepo.logShopAction(
+      actionType: 'unlock_tower',
+      itemId: def.id,
+      metadata: {
+        'currency': usingDiamonds ? 'diamonds' : 'towerShards',
+        'cost': usingDiamonds ? diamondPrice! : shardPrice!,
+        'rarity': def.rarity,
+      },
+    );
+    await economyLogRepo.logTowerPurchase(
+      towerId: def.id,
+      rarity: def.rarity,
+      currency: usingDiamonds ? 'diamonds' : 'towerShards',
+      cost: usingDiamonds ? diamondPrice! : shardPrice!,
     );
   }
 
@@ -1133,7 +1373,8 @@ class _ShopScreenState extends State<ShopScreen> {
     }
     final ok = await _showConfirmDialog(
       title: title,
-      body: '다이아 ${_fmtInt(diamondCost)}개로 골드 ${_fmtInt(goldAmount)}을 구매하시겠습니까?',
+      body:
+          '다이아 ${_fmtInt(diamondCost)}개로 골드 ${_fmtInt(goldAmount)}을 구매하시겠습니까?',
       confirmLabel: '구매',
     );
     if (ok != true) return;
@@ -1142,6 +1383,25 @@ class _ShopScreenState extends State<ShopScreen> {
       progress.accountGold += goldAmount;
     });
     await progressRepo.save(progress);
+    await economyLogRepo.logCurrencyChange(
+      source: 'shop_gold_package_cost',
+      currency: 'diamonds',
+      amount: -diamondCost,
+      balanceAfter: progress.diamonds,
+      metadata: {'package': title},
+    );
+    await economyLogRepo.logCurrencyChange(
+      source: 'shop_gold_package_reward',
+      currency: 'accountGold',
+      amount: goldAmount,
+      balanceAfter: progress.accountGold,
+      metadata: {'package': title},
+    );
+    await economyLogRepo.logShopAction(
+      actionType: 'buy_gold_package',
+      itemId: title,
+      metadata: {'goldAmount': goldAmount, 'diamondCost': diamondCost},
+    );
   }
 
   Future<void> _buyEnergyWithGold({
@@ -1164,6 +1424,25 @@ class _ShopScreenState extends State<ShopScreen> {
       progress.energy += energyAmount;
     });
     await progressRepo.save(progress);
+    await economyLogRepo.logCurrencyChange(
+      source: 'shop_energy_gold_cost',
+      currency: 'accountGold',
+      amount: -goldCost,
+      balanceAfter: progress.accountGold,
+      metadata: {'package': title},
+    );
+    await economyLogRepo.logCurrencyChange(
+      source: 'shop_energy_gold_reward',
+      currency: 'energy',
+      amount: energyAmount,
+      balanceAfter: progress.energy,
+      metadata: {'package': title},
+    );
+    await economyLogRepo.logShopAction(
+      actionType: 'buy_energy_with_gold',
+      itemId: title,
+      metadata: {'energyAmount': energyAmount, 'goldCost': goldCost},
+    );
   }
 
   Future<void> _buyEnergyWithDiamond({
@@ -1177,7 +1456,8 @@ class _ShopScreenState extends State<ShopScreen> {
     }
     final ok = await _showConfirmDialog(
       title: title,
-      body: '다이아 ${_fmtInt(diamondCost)}로 에너지 ${_fmtInt(energyAmount)}를 구매하시겠습니까?',
+      body:
+          '다이아 ${_fmtInt(diamondCost)}로 에너지 ${_fmtInt(energyAmount)}를 구매하시겠습니까?',
       confirmLabel: '구매',
     );
     if (ok != true) return;
@@ -1186,6 +1466,25 @@ class _ShopScreenState extends State<ShopScreen> {
       progress.energy += energyAmount;
     });
     await progressRepo.save(progress);
+    await economyLogRepo.logCurrencyChange(
+      source: 'shop_energy_diamond_cost',
+      currency: 'diamonds',
+      amount: -diamondCost,
+      balanceAfter: progress.diamonds,
+      metadata: {'package': title},
+    );
+    await economyLogRepo.logCurrencyChange(
+      source: 'shop_energy_diamond_reward',
+      currency: 'energy',
+      amount: energyAmount,
+      balanceAfter: progress.energy,
+      metadata: {'package': title},
+    );
+    await economyLogRepo.logShopAction(
+      actionType: 'buy_energy_with_diamond',
+      itemId: title,
+      metadata: {'energyAmount': energyAmount, 'diamondCost': diamondCost},
+    );
   }
 
   Widget _comingSoonPanel({
@@ -1251,30 +1550,6 @@ class _ShopScreenState extends State<ShopScreen> {
       'legendary' => 3,
       _ => 99,
     };
-  }
-
-  Future<void> _confirmTowerPurchase(TowerDef def, int price) async {
-    final tower = progress.towers[def.id] ?? TowerProgress(towerId: def.id, unlocked: false);
-    if (tower.unlocked) {
-      await _showNoticeDialog(title: '알림', body: '이미 구매한 타워입니다.');
-      return;
-    }
-    if (progress.diamonds < price) {
-      await _showNoticeDialog(title: '알림', body: '다이아가 부족합니다.');
-      return;
-    }
-    final ok = await _showConfirmDialog(
-      title: '타워 구매',
-      body: '${_towerDisplayNameKo(def.id)}를 다이아 ${_fmtInt(price)}개로 구매하시겠습니까?',
-      confirmLabel: '구매',
-    );
-    if (ok != true) return;
-    setState(() {
-      progress.diamonds -= price;
-      tower.unlocked = true;
-      progress.towers[def.id] = tower;
-    });
-    await progressRepo.save(progress);
   }
 
   Widget _detailLine(String label, String value) {
@@ -1427,7 +1702,8 @@ class _ShopScreenState extends State<ShopScreen> {
         '시간왜곡 ${_formatPercent((e.value ?? 0).clamp(0, 0.8).toDouble())}, 지속 ${_fmtSec(e.durationSec)}',
       'pull' =>
         '끌어당김 ${((e.value ?? 1).round())}칸, 확률 ${_formatPercent((e.chance ?? 1).clamp(0, 1).toDouble())}',
-      'dot' => '지속피해 ${(e.value ?? 0).toStringAsFixed(1)} / ${_fmtSec(e.durationSec)}',
+      'dot' =>
+        '지속피해 ${(e.value ?? 0).toStringAsFixed(1)} / ${_fmtSec(e.durationSec)}',
       'attack_weaken' =>
         '공격약화 ${_formatPercent((e.value ?? 0).clamp(0, 0.8).toDouble())}, 지속 ${_fmtSec(e.durationSec)}',
       'chain_arc' =>
@@ -1465,22 +1741,40 @@ class _ShopScreenState extends State<ShopScreen> {
     required bool useTicket,
     bool useAd = false,
   }) async {
-    _syncShardDrawDailyLimit();
-    _syncAdDailyLimit();
-    final outcome = await _rollMany(
-      count: count,
-      useCost: useCost,
-      useTicket: useTicket,
-      useAd: useAd,
-    );
-    if (!mounted) return;
-    if (outcome.error != null) {
-      await _showNoticeDialog(title: '알림', body: outcome.error!);
-      return;
+    if (_isDrawing) return;
+    setState(() => _isDrawing = true);
+    unawaited(AppAudioService.instance.playGachaOpen());
+    try {
+      _syncShardDrawDailyLimit();
+      _syncAdDailyLimit();
+      final outcome = await _rollMany(
+        count: count,
+        useCost: useCost,
+        useTicket: useTicket,
+        useAd: useAd,
+      );
+      if (!mounted) return;
+      if (outcome.error != null) {
+        await _showNoticeDialog(title: '알림', body: outcome.error!);
+        return;
+      }
+      final summary = outcome.rewards
+          .map((e) => '${_towerDisplayNameKo(e.tower.id)} 조각 +${e.shards}')
+          .join(', ');
+      setState(() => lastResult = summary);
+      final hasRareOrAbove =
+          outcome.rewards.any((e) => e.tower.rarity != 'common');
+      unawaited(hasRareOrAbove
+          ? AppAudioService.instance.playConfirm()
+          : AppAudioService.instance.playUiClick());
+      await _showDrawResultDialog(outcome.rewards);
+    } finally {
+      if (mounted) {
+        setState(() => _isDrawing = false);
+      } else {
+        _isDrawing = false;
+      }
     }
-    final summary = outcome.rewards.map((e) => '${_towerDisplayNameKo(e.tower.id)} 조각 +${e.shards}').join(', ');
-    setState(() => lastResult = summary);
-    await _showDrawResultDialog(outcome.rewards);
   }
 
   void _syncShardDrawDailyLimit() {
@@ -1510,6 +1804,8 @@ class _ShopScreenState extends State<ShopScreen> {
     required String title,
     required String body,
   }) async {
+    unawaited(AppAudioService.instance.playError());
+    unawaited(AppAudioService.instance.playPopupOpen());
     await showDialog<void>(
       context: context,
       builder: (context) => Dialog(
@@ -1571,6 +1867,7 @@ class _ShopScreenState extends State<ShopScreen> {
     required String body,
     required String confirmLabel,
   }) {
+    unawaited(AppAudioService.instance.playPopupOpen());
     return showDialog<bool>(
       context: context,
       builder: (context) => Dialog(
@@ -1646,110 +1943,115 @@ class _ShopScreenState extends State<ShopScreen> {
 
   Future<void> _showDrawResultDialog(List<_ShardDrawReward> rewards) async {
     if (rewards.isEmpty) return;
+    unawaited(AppAudioService.instance.playPopupOpen());
+    await Future<void>.delayed(const Duration(milliseconds: 16));
+    if (!mounted) return;
     await showDialog<void>(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 360),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF102033),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF83B5FF), width: 1.4),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x66000000),
-                blurRadius: 20,
-                offset: Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                '타워 조각 획득',
-                style: TextStyle(
-                  color: Color(0xFFF3F7FF),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
+      builder: (context) {
+        final screenHeight = MediaQuery.of(context).size.height;
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 360),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF102033),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFF83B5FF), width: 1.4),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x66000000),
+                  blurRadius: 20,
+                  offset: Offset(0, 10),
                 ),
-              ),
-              const SizedBox(height: 14),
-              Flexible(
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  itemCount: rewards.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: rewards.length == 1 ? 1 : 2,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    childAspectRatio: rewards.length == 1 ? 2.4 : 1.15,
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  '타워 조각 획득',
+                  style: TextStyle(
+                    color: Color(0xFFF3F7FF),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
                   ),
-                  itemBuilder: (context, index) {
-                    final reward = rewards[index];
-                    return Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xCC17304B),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: _rarityColor(reward.tower.rarity),
-                          width: 1.2,
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Image.asset(
-                              'assets/images/main_towers/${reward.tower.id}.png',
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            _towerDisplayNameKo(reward.tower.id),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Color(0xFFF3F7FF),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              height: 1.1,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '조각 +${reward.shards}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: _rarityColor(reward.tower.rarity),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
                 ),
-              ),
-              const SizedBox(height: 14),
-              AppPanelButton(
-                label: '확인',
-                borderColor: const Color(0xFF83B5FF),
-                foregroundColor: const Color(0xFFF3F7FF),
-                backgroundColor: const Color(0xCC17304B),
-                compact: true,
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
+                const SizedBox(height: 14),
+                SizedBox(
+                  height: math.min(screenHeight * 0.52, 440.0),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: rewards.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final reward = rewards[index];
+                      return Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xCC17304B),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: _rarityColor(reward.tower.rarity),
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 54,
+                              height: 54,
+                              child: Image.asset(
+                                'assets/images/main_towers/${reward.tower.id}.png',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                _towerDisplayNameKo(reward.tower.id),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Color(0xFFF3F7FF),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.15,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              '+${reward.shards}',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: _rarityColor(reward.tower.rarity),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 14),
+                AppPanelButton(
+                  label: '확인',
+                  borderColor: const Color(0xFF83B5FF),
+                  foregroundColor: const Color(0xFFF3F7FF),
+                  backgroundColor: const Color(0xCC17304B),
+                  compact: true,
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -1815,21 +2117,47 @@ class _ShopScreenState extends State<ShopScreen> {
         }
       }
 
-      final candidates = towerDefs.values.where((t) => t.rarity == rarity).toList();
+      final candidates =
+          towerDefs.values.where((t) => t.rarity == rarity).toList();
       if (candidates.isEmpty) {
         continue;
       }
       final tower = candidates[rng.nextInt(candidates.length)];
-      final p = progress.towers[tower.id] ?? TowerProgress(towerId: tower.id, unlocked: false);
+      final p = progress.towers[tower.id] ??
+          TowerProgress(towerId: tower.id, unlocked: false);
       final shardAmount = _rollShardAmount(rng);
       p.shards += shardAmount;
       progress.towers[tower.id] = p;
       rewards.add(_ShardDrawReward(tower: tower, shards: shardAmount));
     }
-    await progressRepo.save(progress);
     if (rewards.isEmpty) {
       return const _ShardDrawOutcome(error: '획득 실패');
     }
+    final rewardSummary = rewards
+        .map((e) => {
+              'towerId': e.tower.id,
+              'shards': e.shards,
+              'rarity': e.tower.rarity
+            })
+        .toList();
+    unawaited(progressRepo.save(progress));
+    unawaited(
+      economyLogRepo.logShopAction(
+        actionType: useAd
+            ? 'shard_draw_ad'
+            : useTicket
+                ? 'shard_draw_ticket'
+                : 'shard_draw_paid',
+        itemId: 'starter_banner',
+        metadata: {
+          'count': count,
+          'useCost': useCost,
+          'useTicket': useTicket,
+          'useAd': useAd,
+          'rewards': rewardSummary,
+        },
+      ),
+    );
     return _ShardDrawOutcome(rewards: rewards);
   }
 
@@ -1842,5 +2170,4 @@ class _ShopScreenState extends State<ShopScreen> {
     if (roll < 0.99) return 5;
     return 10;
   }
-
 }

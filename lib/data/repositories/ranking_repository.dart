@@ -1,5 +1,5 @@
-﻿import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RankingEntry {
   final String name;
@@ -30,96 +30,173 @@ class RankingEntry {
 }
 
 class RankingRepository {
-  static const String _stagePrefsKey = 'local_stage_ranking_json';
-  static const String _infinitePrefsKey = 'local_infinite_ranking_json';
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+
+  RankingRepository({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _auth = auth ?? FirebaseAuth.instance;
+
+  String? get _uid => _auth.currentUser?.uid;
+
+  CollectionReference<Map<String, dynamic>> get _stageCollection =>
+      _firestore.collection('stageRankings');
+  CollectionReference<Map<String, dynamic>> get _infiniteCollection =>
+      _firestore.collection('infiniteRankings');
+
+  static const Map<String, String> _difficultyLabelToKey = {
+    '이지': 'easy',
+    '노말': 'normal',
+    '하드': 'hard',
+    '나이트메어': 'nightmare',
+  };
+
+  static const Map<String, String> _difficultyKeyToLabel = {
+    'easy': '이지',
+    'normal': '노말',
+    'hard': '하드',
+    'nightmare': '나이트메어',
+  };
 
   Future<List<RankingEntry>> loadStage() async {
-    return _loadFromKey(_stagePrefsKey);
+    QuerySnapshot<Map<String, dynamic>> snap;
+    try {
+      final cached = await _stageCollection.get(
+        const GetOptions(source: Source.cache),
+      );
+      if (cached.docs.isNotEmpty) {
+        snap = cached;
+      } else {
+        snap = await _stageCollection.get();
+      }
+    } catch (_) {
+      snap = await _stageCollection.get();
+    }
+    final entries = <RankingEntry>[];
+    for (final doc in snap.docs) {
+      final data = doc.data();
+      final name = (data['name'] as String?) ?? 'PLAYER';
+      final scoresByDifficulty = data['scoresByDifficulty'];
+      if (scoresByDifficulty is Map) {
+        RankingEntry? bestEntry;
+        for (final entry in scoresByDifficulty.entries) {
+          final difficultyKey = entry.key.toString();
+          final score = entry.value is int
+              ? entry.value as int
+              : int.tryParse(entry.value.toString()) ?? 0;
+          if (score <= 0) continue;
+          final candidate = RankingEntry(
+            name: name,
+            score: score,
+            detail: _difficultyKeyToLabel[difficultyKey] ?? difficultyKey,
+          );
+          if (bestEntry == null ||
+              _compareStageEntries(candidate, bestEntry) < 0) {
+            bestEntry = candidate;
+          }
+        }
+        if (bestEntry != null) {
+          entries.add(bestEntry);
+        }
+        continue;
+      }
+
+      // Legacy single-entry format fallback.
+      final legacy = RankingEntry.fromJson(data);
+      if (legacy.score > 0) {
+        entries.add(legacy);
+      }
+    }
+    entries.sort(_compareStageEntries);
+    return entries.take(20).toList();
   }
 
   Future<List<RankingEntry>> loadInfinite() async {
-    return _loadFromKey(_infinitePrefsKey);
+    final query =
+        _infiniteCollection.orderBy('score', descending: true).limit(20);
+    QuerySnapshot<Map<String, dynamic>> snap;
+    try {
+      final cached = await query.get(const GetOptions(source: Source.cache));
+      if (cached.docs.isNotEmpty) {
+        snap = cached;
+      } else {
+        snap = await query.get();
+      }
+    } catch (_) {
+      snap = await query.get();
+    }
+    return snap.docs.map((doc) => RankingEntry.fromJson(doc.data())).toList();
   }
 
   Future<List<RankingEntry>> load() async {
     return loadStage();
   }
 
-  Future<List<RankingEntry>> _loadFromKey(String prefsKey) async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(prefsKey);
-    if (raw == null || raw.isEmpty) {
-      return const [];
-    }
-    final list = jsonDecode(raw) as List<dynamic>;
-    return list.map((e) => RankingEntry.fromJson(e as Map<String, dynamic>)).toList();
-  }
-
   Future<void> saveStage(List<RankingEntry> entries) async {
-    await _saveToKey(_stagePrefsKey, entries);
+    for (final entry in entries) {
+      await addStageScore(entry.name, entry.score, detail: entry.detail);
+    }
   }
 
   Future<void> saveInfinite(List<RankingEntry> entries) async {
-    await _saveToKey(_infinitePrefsKey, entries);
+    for (final entry in entries) {
+      await addInfiniteScore(entry.name, entry.score);
+    }
   }
 
   Future<void> save(List<RankingEntry> entries) async {
     await saveStage(entries);
   }
 
-  Future<void> _saveToKey(String prefsKey, List<RankingEntry> entries) async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = jsonEncode(entries.map((e) => e.toJson()).toList());
-    await prefs.setString(prefsKey, raw);
-  }
-
   Future<void> addStageScore(String name, int score, {String? detail}) async {
-    await _addScoreToKey(_stagePrefsKey, name, score, detail: detail);
+    final uid = _uid;
+    if (uid == null) return;
+    final doc = _stageCollection.doc(uid);
+    final difficultyKey = _difficultyLabelToKey[detail] ?? detail;
+    if (difficultyKey == null || difficultyKey.isEmpty) return;
+    final current = await doc.get();
+    final currentData = current.data() ?? const <String, dynamic>{};
+    final currentScoresRaw = currentData['scoresByDifficulty'];
+    final currentScores = currentScoresRaw is Map
+        ? Map<String, dynamic>.from(currentScoresRaw)
+        : <String, dynamic>{};
+    final currentScore = currentScores[difficultyKey] is int
+        ? currentScores[difficultyKey] as int
+        : int.tryParse('${currentScores[difficultyKey]}') ?? 0;
+    if (currentScore >= score) return;
+    currentScores[difficultyKey] = score;
+    await doc.set({
+      'name': name,
+      'scoresByDifficulty': currentScores,
+      'uid': uid,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   Future<void> addInfiniteScore(String name, int score) async {
-    await _addScoreToKey(_infinitePrefsKey, name, score);
+    final uid = _uid;
+    if (uid == null) return;
+    final doc = _infiniteCollection.doc(uid);
+    final current = await doc.get();
+    final currentScore = current.data()?['score'] as int?;
+    if (currentScore != null && currentScore >= score) return;
+    await doc.set({
+      'name': name,
+      'score': score,
+      'uid': uid,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
-  Future<void> addScore(String name, int score) async {
-    await addStageScore(name, score);
-  }
+  bool get hasAuthenticatedUser => _uid != null;
 
-  Future<void> _addScoreToKey(
-    String prefsKey,
-    String name,
-    int score, {
-    String? detail,
-  }) async {
-    final entries = await _loadFromKey(prefsKey);
-    final updated = [...entries];
-    final existingIndex = updated.indexWhere((entry) => entry.name == name);
-    if (existingIndex >= 0) {
-      final current = updated[existingIndex];
-      final candidate = RankingEntry(
-        name: name,
-        score: score,
-        detail: detail ?? current.detail,
-      );
-      final shouldReplace = prefsKey == _stagePrefsKey
-          ? _compareStageEntries(candidate, current) < 0
-          : score > current.score;
-      if (shouldReplace) {
-        updated[existingIndex] = RankingEntry(
-          name: name,
-          score: score,
-          detail: detail ?? current.detail,
-        );
-      }
-    } else {
-      updated.add(RankingEntry(name: name, score: score, detail: detail));
-    }
-    if (prefsKey == _stagePrefsKey) {
-      updated.sort(_compareStageEntries);
-    } else {
-      updated.sort((a, b) => b.score.compareTo(a.score));
-    }
-    await _saveToKey(prefsKey, updated.take(20).toList());
+  Future<void> deleteCurrentUserEntries() async {
+    final uid = _uid;
+    if (uid == null) return;
+    await _stageCollection.doc(uid).delete().catchError((_) {});
+    await _infiniteCollection.doc(uid).delete().catchError((_) {});
   }
 
   static int _difficultyOrder(String? detail) {

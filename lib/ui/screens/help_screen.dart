@@ -1,7 +1,27 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 
-class HelpScreen extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:tower_defense/shared/audio_service.dart';
+
+class HelpScreen extends StatefulWidget {
   const HelpScreen({super.key});
+
+  @override
+  State<HelpScreen> createState() => _HelpScreenState();
+}
+
+class _HelpScreenState extends State<HelpScreen> {
+  @override
+  void initState() {
+    super.initState();
+    unawaited(AppAudioService.instance.playBgm(AudioBgmTrack.lobby));
+  }
+
+  @override
+  void dispose() {
+    unawaited(AppAudioService.instance.stopAllSfx());
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

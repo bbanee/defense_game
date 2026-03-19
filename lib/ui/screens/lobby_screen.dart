@@ -3,9 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:tower_defense/data/definition_repository.dart';
 import 'package:tower_defense/data/repositories/account_progress_repository.dart';
+import 'package:tower_defense/data/repositories/economy_log_repository.dart';
+import 'package:tower_defense/data/repositories/settings_repository.dart';
 import 'package:tower_defense/domain/progress/account_progress.dart';
+import 'package:tower_defense/shared/audio_service.dart';
 import 'package:tower_defense/ui/screens/building_management_screen.dart';
 import 'package:tower_defense/ui/screens/help_screen.dart';
+import 'package:tower_defense/ui/screens/login_screen.dart';
 import 'package:tower_defense/ui/screens/ranking_screen.dart';
 import 'package:tower_defense/ui/screens/settings_screen.dart';
 import 'package:tower_defense/ui/screens/shop_screen.dart';
@@ -18,37 +22,62 @@ typedef GameScreenBuilder = Widget Function({
   required String difficultyId,
   required String stageId,
   required AccountProgress progress,
+  required bool showDamage,
   required VoidCallback onExit,
 });
 
 class LobbyScreen extends StatefulWidget {
   final GameScreenBuilder gameScreenBuilder;
+  final AccountProgress? initialProgress;
 
-  const LobbyScreen({super.key, required this.gameScreenBuilder});
+  const LobbyScreen({
+    super.key,
+    required this.gameScreenBuilder,
+    this.initialProgress,
+  });
 
   @override
   State<LobbyScreen> createState() => _LobbyScreenState();
 }
 
 class _LobbyScreenState extends State<LobbyScreen> {
-  static const Duration _energyRegenInterval = Duration(minutes: 5);
+  static const Duration _energyRegenInterval = Duration(minutes: 2);
   static const bool _showTestMapButton = false;
-  static final Uri _officialHomepageUri = Uri.parse('https://www.opentheday.site/');
+  static final Uri _officialHomepageUri =
+      Uri.parse('https://www.opentheday.site/');
   String _gameMode = '스토리 모드';
   String _difficulty = '노멀 모드';
   AccountProgress? _progress;
+  bool _isLoading = true;
+  bool _isStartingGame = false;
   final DefinitionRepository _definitionRepo = DefinitionRepository();
   final AccountProgressRepository _progressRepo = AccountProgressRepository();
+  final EconomyLogRepository _economyLogRepo = EconomyLogRepository();
+  final SettingsRepository _settingsRepo = SettingsRepository();
   Timer? _energyTimer;
+  bool _showDamage = true;
+  _AttendanceClaimResult? _pendingAttendanceDialog;
+  bool _isAttendanceDialogOpen = false;
 
   @override
   void initState() {
     super.initState();
-    _loadProgress();
+    final initialProgress = widget.initialProgress?.copy();
+    if (initialProgress != null) {
+      _initializeEnergyClock(initialProgress);
+      final changed = _applyEnergyRegenTo(initialProgress);
+      _normalizeSelections(initialProgress);
+      _progress = initialProgress;
+      _isLoading = false;
+      unawaited(_loadSettings());
+      unawaited(_finishLobbyBootstrap(initialProgress, changed));
+    } else {
+      _loadProgress();
+    }
     _energyTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       final changed = _applyEnergyRegen(save: false);
       if (changed && _progress != null) {
-        _progressRepo.save(_progress!);
+        _progressRepo.scheduleSave(_progress!);
       }
       if (mounted) {
         setState(() {});
@@ -58,37 +87,78 @@ class _LobbyScreenState extends State<LobbyScreen> {
 
   @override
   void dispose() {
+    unawaited(AppAudioService.instance.stopAllSfx());
     _energyTimer?.cancel();
     super.dispose();
   }
 
   Future<void> _loadProgress() async {
     final data = await _progressRepo.load();
+    unawaited(_loadSettings());
     _initializeEnergyClock(data);
     final changed = _applyEnergyRegenTo(data);
+    _normalizeSelections(data);
+    if (!mounted) return;
+    setState(() {
+      _progress = data;
+      _isLoading = false;
+    });
+    unawaited(_finishLobbyBootstrap(data, changed));
+  }
+
+  Future<void> _loadSettings() async {
+    final settings = await _settingsRepo.load();
+    AppAudioService.instance.applySettings(settings);
+    unawaited(AppAudioService.instance.playBgm(AudioBgmTrack.lobby));
+    if (!mounted) return;
+    setState(() {
+      _showDamage = settings.showDamage;
+    });
+  }
+
+  Future<void> _finishLobbyBootstrap(
+    AccountProgress data,
+    bool changed,
+  ) async {
+    if (changed) {
+      _progressRepo.scheduleSave(data);
+    }
     final attendanceRewards = await _definitionRepo.loadAttendanceRewards();
     final attendanceResult = _applyAttendanceCheck(
       data,
       attendanceRewards,
     );
-    if (changed) {
-      await _progressRepo.save(data);
-    }
     if (attendanceResult != null) {
       await _progressRepo.save(data);
-    }
-    if (!mounted) return;
-    _normalizeSelections(data);
-    setState(() => _progress = data);
-    if (attendanceResult != null && mounted) {
+      if (!mounted) return;
+      setState(() => _progress = data);
+      _pendingAttendanceDialog = attendanceResult;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        _showAttendanceDialog(
-          day: attendanceResult.day,
-          claimedReward: attendanceResult.reward,
-          rewards: attendanceRewards,
-        );
+        unawaited(_tryShowPendingAttendanceDialog(attendanceRewards));
       });
+    }
+  }
+
+  Future<void> _tryShowPendingAttendanceDialog(
+    List<Map<String, dynamic>> rewards,
+  ) async {
+    if (!mounted || _isAttendanceDialogOpen || _isStartingGame) return;
+    final pending = _pendingAttendanceDialog;
+    if (pending == null) return;
+    final route = ModalRoute.of(context);
+    if (route?.isCurrent == false) return;
+
+    _isAttendanceDialogOpen = true;
+    _pendingAttendanceDialog = null;
+    try {
+      await _showAttendanceDialog(
+        day: pending.day,
+        claimedReward: pending.reward,
+        rewards: rewards,
+      );
+    } finally {
+      _isAttendanceDialogOpen = false;
     }
   }
 
@@ -102,7 +172,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
     if (progress == null) return false;
     final changed = _applyEnergyRegenTo(progress);
     if (changed && save) {
-      _progressRepo.save(progress);
+      _progressRepo.scheduleSave(progress);
     }
     return changed;
   }
@@ -151,6 +221,26 @@ class _LobbyScreenState extends State<LobbyScreen> {
       orElse: () => rewards.first,
     );
     _applyAttendanceReward(progress, reward);
+    final amount = reward['amount'] as int? ?? 0;
+    final type = reward['type'] as String? ?? '';
+    if (amount > 0 && type.isNotEmpty) {
+      final balanceAfter = switch (type) {
+        'accountGold' => progress.accountGold,
+        'diamonds' => progress.diamonds,
+        'shardDrawTickets' => progress.shardDrawTickets,
+        'energy' => progress.energy,
+        _ => 0,
+      };
+      unawaited(
+        _economyLogRepo.logCurrencyChange(
+          source: 'attendance_reward',
+          currency: type,
+          amount: amount,
+          balanceAfter: balanceAfter,
+          metadata: {'day': nextDay},
+        ),
+      );
+    }
     progress.lastAttendanceDate = today;
     progress.attendanceDay = nextDay;
     return _AttendanceClaimResult(day: nextDay, reward: reward);
@@ -214,6 +304,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
     required Map<String, dynamic> claimedReward,
     required List<Map<String, dynamic>> rewards,
   }) async {
+    unawaited(AppAudioService.instance.playPopupOpen());
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -269,7 +360,8 @@ class _LobbyScreenState extends State<LobbyScreen> {
                     child: GridView.builder(
                       itemCount: rewards.length,
                       physics: const BouncingScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
                         mainAxisSpacing: 6,
                         crossAxisSpacing: 6,
@@ -330,7 +422,8 @@ class _LobbyScreenState extends State<LobbyScreen> {
                                       ? const Color(0xFFF3F7FF)
                                       : const Color(0xFFA6B9D8),
                                   fontSize: 8.5,
-                                  fontWeight: today ? FontWeight.w800 : FontWeight.w700,
+                                  fontWeight:
+                                      today ? FontWeight.w800 : FontWeight.w700,
                                   height: 1.05,
                                 ),
                               ),
@@ -364,7 +457,8 @@ class _LobbyScreenState extends State<LobbyScreen> {
     if (progress.energy >= progress.maxEnergy) return 'MAX';
     final last = DateTime.tryParse(progress.lastEnergyAtIso) ?? DateTime.now();
     final elapsed = DateTime.now().difference(last).inSeconds;
-    final remain = (_energyRegenInterval.inSeconds - (elapsed % _energyRegenInterval.inSeconds))
+    final remain = (_energyRegenInterval.inSeconds -
+            (elapsed % _energyRegenInterval.inSeconds))
         .clamp(1, _energyRegenInterval.inSeconds);
     final minutes = (remain ~/ 60).toString().padLeft(2, '0');
     final seconds = (remain % 60).toString().padLeft(2, '0');
@@ -427,94 +521,113 @@ class _LobbyScreenState extends State<LobbyScreen> {
   String _formatCompactAmount(int value) {
     if (value >= 1000000) {
       final compact = value / 1000000;
-      return compact >= 10 ? '${compact.toStringAsFixed(0)}M' : '${compact.toStringAsFixed(1)}M';
+      return compact >= 10
+          ? '${compact.toStringAsFixed(0)}M'
+          : '${compact.toStringAsFixed(1)}M';
     }
     if (value >= 1000) {
       final compact = value / 1000;
-      return compact >= 10 ? '${compact.toStringAsFixed(0)}K' : '${compact.toStringAsFixed(1)}K';
+      return compact >= 10
+          ? '${compact.toStringAsFixed(0)}K'
+          : '${compact.toStringAsFixed(1)}K';
     }
     return '$value';
   }
 
   Future<void> _startGame({String stageId = 'story_01'}) async {
     final progress = _progress;
-    if (progress == null) return;
-    if (_gameMode == '무한 모드' && !_isInfiniteUnlocked(progress)) {
-      await _showStyledNoticeDialog(
-        title: '무한 모드 잠김',
-        body: '무한 모드는 이지모드 30웨이브 클리어 후 오픈됩니다.',
-      );
-      return;
-    }
-    if (_gameMode == '스토리 모드') {
-      if (_difficulty == '노멀 모드' && !_isNormalUnlocked(progress)) {
+    if (progress == null || _isLoading || _isStartingGame) return;
+    setState(() => _isStartingGame = true);
+    try {
+      final settings = await _settingsRepo.load();
+      _showDamage = settings.showDamage;
+      if (_gameMode == '무한 모드' && !_isInfiniteUnlocked(progress)) {
         await _showStyledNoticeDialog(
-          title: '노멀 모드 잠김',
-          body: '노멀 모드는 이지모드 40웨이브 클리어 후 오픈됩니다.',
+          title: '무한 모드 잠김',
+          body: '무한 모드는 이지모드 30웨이브 클리어 후 오픈됩니다.',
         );
         return;
       }
-      if (_difficulty == '하드 모드' && !_isHardUnlocked(progress)) {
+      if (_gameMode == '스토리 모드') {
+        if (_difficulty == '노멀 모드' && !_isNormalUnlocked(progress)) {
+          await _showStyledNoticeDialog(
+            title: '노멀 모드 잠김',
+            body: '노멀 모드는 이지모드 40웨이브 클리어 후 오픈됩니다.',
+          );
+          return;
+        }
+        if (_difficulty == '하드 모드' && !_isHardUnlocked(progress)) {
+          await _showStyledNoticeDialog(
+            title: '하드 모드 잠김',
+            body: '하드 모드는 노멀모드 50웨이브 클리어 후 오픈됩니다.',
+          );
+          return;
+        }
+      }
+      final isInfiniteMode = _gameMode == '무한 모드';
+      final actualStageId = isInfiniteMode ? 'endless_01' : stageId;
+      final difficultyId = isInfiniteMode
+          ? 'endless'
+          : switch (_difficulty) {
+              '이지 모드' => 'easy',
+              '노멀 모드' => 'normal',
+              '하드 모드' => 'hard',
+              _ => 'normal',
+            };
+      final stage = await _definitionRepo.loadStage(actualStageId);
+      final energyCost = stage.energyCost;
+      if (!mounted) return;
+
+      if (progress.energy < energyCost) {
         await _showStyledNoticeDialog(
-          title: '하드 모드 잠김',
-          body: '하드 모드는 노멀모드 50웨이브 클리어 후 오픈됩니다.',
+          title: '에너지 부족',
+          body: '게임 시작에 에너지 $energyCost가 필요합니다.',
         );
         return;
       }
-    }
-    final isInfiniteMode = _gameMode == '무한 모드';
-    final actualStageId = isInfiniteMode ? 'endless_01' : stageId;
-    final difficultyId = isInfiniteMode
-        ? 'endless'
-        : switch (_difficulty) {
-            '이지 모드' => 'easy',
-            '노멀 모드' => 'normal',
-            '하드 모드' => 'hard',
-            _ => 'normal',
-          };
-    final stage = await _definitionRepo.loadStage(actualStageId);
-    final energyCost = stage.energyCost;
-    if (!mounted) return;
 
-    if (progress.energy < energyCost) {
-      await _showStyledNoticeDialog(
-        title: '에너지 부족',
-        body: '게임 시작에 에너지 $energyCost가 필요합니다.',
-      );
-      return;
-    }
+      setState(() {
+        progress.energy -= energyCost;
+        if (progress.energy < progress.maxEnergy) {
+          progress.lastEnergyAtIso = DateTime.now().toIso8601String();
+        }
+      });
+      final progressSnapshot = progress.copy();
+      unawaited(_progressRepo.save(progressSnapshot));
+      if (!mounted) return;
 
-    setState(() {
-      progress.energy -= energyCost;
-      if (progress.energy < progress.maxEnergy) {
-        progress.lastEnergyAtIso = DateTime.now().toIso8601String();
-      }
-    });
-    await _progressRepo.save(progress);
-    if (!mounted) return;
-
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => widget.gameScreenBuilder(
-          difficultyId: difficultyId,
-          stageId: actualStageId,
-          progress: progress.copy(),
-          onExit: () => Navigator.of(context).pop(),
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => widget.gameScreenBuilder(
+            difficultyId: difficultyId,
+            stageId: actualStageId,
+            progress: progressSnapshot,
+            showDamage: _showDamage,
+            onExit: () => Navigator.of(context).pop(),
+          ),
         ),
-      ),
-    );
-    final refreshed = await _progressRepo.load();
-    _initializeEnergyClock(refreshed);
-    _applyEnergyRegenTo(refreshed);
-    if (!mounted) return;
-    _normalizeSelections(refreshed);
-    setState(() => _progress = refreshed);
+      );
+      final refreshed = await _progressRepo.load();
+      _initializeEnergyClock(refreshed);
+      _applyEnergyRegenTo(refreshed);
+      if (!mounted) return;
+      _normalizeSelections(refreshed);
+      setState(() => _progress = refreshed);
+    } finally {
+      if (mounted) {
+        setState(() => _isStartingGame = false);
+      } else {
+        _isStartingGame = false;
+      }
+    }
   }
 
   Future<void> _showStyledNoticeDialog({
     required String title,
     required String body,
   }) async {
+    unawaited(AppAudioService.instance.playError());
+    unawaited(AppAudioService.instance.playPopupOpen());
     await showDialog<void>(
       context: context,
       builder: (context) => Dialog(
@@ -578,6 +691,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
     if (progress == null) return;
     const energyAmount = 5;
     const diamondCost = 50;
+    unawaited(AppAudioService.instance.playPopupOpen());
     final action = await showDialog<String>(
       context: context,
       builder: (context) => Dialog(
@@ -680,10 +794,26 @@ class _LobbyScreenState extends State<LobbyScreen> {
         progress.diamonds -= diamondCost;
         progress.energy += energyAmount;
       });
+      unawaited(_economyLogRepo.logCurrencyChange(
+        source: 'energy_quick_buy',
+        currency: 'diamonds',
+        amount: -diamondCost,
+        balanceAfter: progress.diamonds,
+      ));
+      unawaited(_economyLogRepo.logCurrencyChange(
+        source: 'energy_quick_buy',
+        currency: 'energy',
+        amount: energyAmount,
+        balanceAfter: progress.energy,
+      ));
     } else if (action == 'ad') {
       setState(() {
         progress.energy += energyAmount;
       });
+      unawaited(_economyLogRepo.logAdReward(
+        placement: 'lobby_energy_quick',
+        reward: {'energy': energyAmount},
+      ));
     } else {
       return;
     }
@@ -705,6 +835,16 @@ class _LobbyScreenState extends State<LobbyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_pendingAttendanceDialog != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        unawaited(
+          _definitionRepo
+              .loadAttendanceRewards()
+              .then(_tryShowPendingAttendanceDialog),
+        );
+      });
+    }
     final borderColor = const Color(0xFF8CB8FF);
     final bgColor = const Color(0xFF07111F);
     final textColor = const Color(0xFFF3F7FF);
@@ -744,405 +884,554 @@ class _LobbyScreenState extends State<LobbyScreen> {
             child: Stack(
               children: [
                 Center(
-                  child: Container(
-                        width: 360,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xB3121D2E),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: borderColor, width: 2),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x40000000),
-                              blurRadius: 18,
-                              offset: Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            _TopBar(
-                              borderColor: borderColor,
-                              goldLabel: _formatCompactAmount(_progress?.accountGold ?? 0),
-                              diamondLabel: _formatCompactAmount(_progress?.diamonds ?? 0),
-                              ticketLabel: _formatCompactAmount(_progress?.shardDrawTickets ?? 0),
-                              energyLabel: '${_progress?.energy ?? 0}/${_progress?.maxEnergy ?? 20}',
-                              energyCountdown: _energyCountdownLabel(_progress),
-                              onEnergyPlusTap: _buyEnergyQuick,
-                              onAttendanceTap: () async {
-                                final rewards = await _definitionRepo.loadAttendanceRewards();
-                                if (!mounted) return;
-                                await _showAttendanceDialog(
-                                  day: _progress?.attendanceDay ?? 0,
-                                  claimedReward: rewards[(_progress?.attendanceDay ?? 1).clamp(1, rewards.length) - 1],
-                                  rewards: rewards,
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'SF\n타워 디펜스',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: textColor,
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                                shadows: const [
-                                  Shadow(
-                                    color: Color(0xFF5EC7FF),
-                                    blurRadius: 10,
-                                    offset: Offset(0, 0),
-                                  ),
-                                ],
-                                letterSpacing: 1.6,
-                                height: 1.0,
-                              ),
-                            ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: _LobbyFieldLabelWidth.value,
-                          child: Text(
-                            '모드',
-                            style: TextStyle(
-                              color: textColor,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              height: 1.0,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: AppPanelBox(
-                            borderColor: borderColor,
-                            backgroundColor: panelFill,
-                            borderRadius: BorderRadius.circular(14),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.layers_rounded, size: 14, color: Color(0xFF8FD3FF)),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      isExpanded: true,
-                                      value: _gameMode,
-                                      dropdownColor: const Color(0xFF12233A),
-                                      iconEnabledColor: textColor,
-                                      style: TextStyle(
-                                        color: textColor,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                      items: [
-                                        const DropdownMenuItem(
-                                          value: '스토리 모드',
-                                          child: Text('스토리 모드'),
-                                        ),
-                                        DropdownMenuItem(
-                                          value: '무한 모드',
-                                          enabled: infiniteUnlocked,
-                                          child: Text(
-                                            infiniteUnlocked
-                                                ? '무한 모드'
-                                                : '무한 모드 (잠김)',
-                                          ),
-                                        ),
-                                      ],
-                                      onChanged: (value) {
-                                        if (value == null) return;
-                                        setState(() => _gameMode = value);
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    if (_gameMode == '스토리 모드') ...[
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: _LobbyFieldLabelWidth.value,
-                          child: Text(
-                            '난이도',
-                            style: TextStyle(
-                              color: textColor,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              height: 1.0,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: AppPanelBox(
-                            borderColor: borderColor,
-                            backgroundColor: panelFill,
-                            borderRadius: BorderRadius.circular(14),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.circle, size: 12, color: Color(0xFF27C24C)),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      isExpanded: true,
-                                      value: _difficulty,
-                                      dropdownColor: const Color(0xFF12233A),
-                                      iconEnabledColor: textColor,
-                                      style: TextStyle(
-                                        color: textColor,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                      items: [
-                                        const DropdownMenuItem(
-                                          value: '이지 모드',
-                                          child: Text('이지 모드'),
-                                        ),
-                                        DropdownMenuItem(
-                                          value: '노멀 모드',
-                                          enabled: normalUnlocked,
-                                          child: Text(
-                                            normalUnlocked
-                                                ? '노멀 모드'
-                                                : '노멀 모드 (잠김)',
-                                          ),
-                                        ),
-                                        DropdownMenuItem(
-                                          value: '하드 모드',
-                                          enabled: hardUnlocked,
-                                          child: Text(
-                                            hardUnlocked
-                                                ? '하드 모드'
-                                                : '하드 모드 (잠김)',
-                                          ),
-                                        ),
-                                      ],
-                                      onChanged: (value) {
-                                        if (value == null) return;
-                                        setState(() => _difficulty = value);
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    ],
-                    AppPanelBox(
-                      borderColor: borderColor,
-                      backgroundColor: panelFill,
-                      borderRadius: BorderRadius.circular(14),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      child: Row(
+                  child: IgnorePointer(
+                    ignoring: _isLoading,
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 180),
+                      opacity: _isLoading ? 0.9 : 1,
+                      child: Stack(
+                        clipBehavior: Clip.none,
                         children: [
-                          const Icon(Icons.flag, size: 14, color: Color(0xFF8FD3FF)),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _bestWaveSummary(),
-                              style: TextStyle(
-                                color: textColor,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                              ),
+                          Container(
+                            width: 360,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 16),
+                            decoration: BoxDecoration(
+                              color: const Color(0xB3121D2E),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: borderColor, width: 2),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x40000000),
+                                  blurRadius: 18,
+                                  offset: Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                _TopBar(
+                                  borderColor: borderColor,
+                                  nicknameLabel:
+                                      (_progress?.nickname.trim().isNotEmpty ??
+                                              false)
+                                          ? _progress!.nickname.trim()
+                                          : '미설정',
+                                  goldLabel: _formatCompactAmount(
+                                      _progress?.accountGold ?? 0),
+                                  diamondLabel: _formatCompactAmount(
+                                      _progress?.diamonds ?? 0),
+                                  energyLabel:
+                                      '${_progress?.energy ?? 0}/${_progress?.maxEnergy ?? 20}',
+                                  energyCountdown:
+                                      _energyCountdownLabel(_progress),
+                                  onEnergyPlusTap: _buyEnergyQuick,
+                                  onAttendanceTap: () async {
+                                    final rewards = await _definitionRepo
+                                        .loadAttendanceRewards();
+                                    if (!mounted) return;
+                                    await _showAttendanceDialog(
+                                      day: _progress?.attendanceDay ?? 0,
+                                      claimedReward: rewards[
+                                          (_progress?.attendanceDay ?? 1)
+                                                  .clamp(1, rewards.length) -
+                                              1],
+                                      rewards: rewards,
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'SF\n타워 디펜스',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: textColor,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                    shadows: const [
+                                      Shadow(
+                                        color: Color(0xFF5EC7FF),
+                                        blurRadius: 10,
+                                        offset: Offset(0, 0),
+                                      ),
+                                    ],
+                                    letterSpacing: 1.6,
+                                    height: 1.0,
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                Row(
+                                  children: [
+                                    SizedBox(
+                                      width: _LobbyFieldLabelWidth.value,
+                                      child: Text(
+                                        '모드',
+                                        style: TextStyle(
+                                          color: textColor,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          height: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: AppPanelBox(
+                                        borderColor: borderColor,
+                                        backgroundColor: panelFill,
+                                        borderRadius: BorderRadius.circular(14),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.layers_rounded,
+                                                size: 14,
+                                                color: Color(0xFF8FD3FF)),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child:
+                                                  DropdownButtonHideUnderline(
+                                                child: DropdownButton<String>(
+                                                  isExpanded: true,
+                                                  value: _gameMode,
+                                                  dropdownColor:
+                                                      const Color(0xFF12233A),
+                                                  iconEnabledColor: textColor,
+                                                  style: TextStyle(
+                                                    color: textColor,
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                  items: [
+                                                    const DropdownMenuItem(
+                                                      value: '스토리 모드',
+                                                      child: Text('스토리 모드'),
+                                                    ),
+                                                    DropdownMenuItem(
+                                                      value: '무한 모드',
+                                                      child: Text(
+                                                        infiniteUnlocked
+                                                            ? '무한 모드'
+                                                            : '무한 모드 (잠김)',
+                                                      ),
+                                                    ),
+                                                  ],
+                                                  onChanged: (value) {
+                                                    if (value == null) return;
+                                                    if (value == '무한 모드' &&
+                                                        !infiniteUnlocked) {
+                                                      _showStyledNoticeDialog(
+                                                        title: '무한 모드 잠김',
+                                                        body:
+                                                            '무한 모드는 이지모드 30웨이브 클리어 후 오픈됩니다.',
+                                                      );
+                                                      return;
+                                                    }
+                                                    setState(() =>
+                                                        _gameMode = value);
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                if (_gameMode == '스토리 모드') ...[
+                                  Row(
+                                    children: [
+                                      SizedBox(
+                                        width: _LobbyFieldLabelWidth.value,
+                                        child: Text(
+                                          '난이도',
+                                          style: TextStyle(
+                                            color: textColor,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            height: 1.0,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: AppPanelBox(
+                                          borderColor: borderColor,
+                                          backgroundColor: panelFill,
+                                          borderRadius:
+                                              BorderRadius.circular(14),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 8),
+                                          child: Row(
+                                            children: [
+                                              const Icon(Icons.circle,
+                                                  size: 12,
+                                                  color: Color(0xFF27C24C)),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child:
+                                                    DropdownButtonHideUnderline(
+                                                  child: DropdownButton<String>(
+                                                    isExpanded: true,
+                                                    value: _difficulty,
+                                                    dropdownColor:
+                                                        const Color(0xFF12233A),
+                                                    iconEnabledColor: textColor,
+                                                    style: TextStyle(
+                                                      color: textColor,
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                                    items: [
+                                                      const DropdownMenuItem(
+                                                        value: '이지 모드',
+                                                        child: Text('이지 모드'),
+                                                      ),
+                                                      DropdownMenuItem(
+                                                        value: '노멀 모드',
+                                                        child: Text(
+                                                          normalUnlocked
+                                                              ? '노멀 모드'
+                                                              : '노멀 모드 (잠김)',
+                                                        ),
+                                                      ),
+                                                      DropdownMenuItem(
+                                                        value: '하드 모드',
+                                                        child: Text(
+                                                          hardUnlocked
+                                                              ? '하드 모드'
+                                                              : '하드 모드 (잠김)',
+                                                        ),
+                                                      ),
+                                                    ],
+                                                    onChanged: (value) {
+                                                      if (value == null) return;
+                                                      if (value == '노멀 모드' &&
+                                                          !normalUnlocked) {
+                                                        _showStyledNoticeDialog(
+                                                          title: '노멀 모드 잠김',
+                                                          body:
+                                                              '노멀 모드는 이지모드 40웨이브 클리어 후 오픈됩니다.',
+                                                        );
+                                                        return;
+                                                      }
+                                                      if (value == '하드 모드' &&
+                                                          !hardUnlocked) {
+                                                        _showStyledNoticeDialog(
+                                                          title: '하드 모드 잠김',
+                                                          body:
+                                                              '하드 모드는 노멀모드 50웨이브 클리어 후 오픈됩니다.',
+                                                        );
+                                                        return;
+                                                      }
+                                                      setState(() =>
+                                                          _difficulty = value);
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
+                                AppPanelBox(
+                                  borderColor: borderColor,
+                                  backgroundColor: panelFill,
+                                  borderRadius: BorderRadius.circular(14),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 10),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.flag,
+                                          size: 14, color: Color(0xFF8FD3FF)),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          _bestWaveSummary(),
+                                          style: TextStyle(
+                                            color: textColor,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                const SizedBox(height: 20),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: AppPanelButton(
+                                    label: '게임 시작',
+                                    borderColor: borderColor,
+                                    foregroundColor: textColor,
+                                    backgroundColor: buttonFill,
+                                    onPressed: (_isLoading || _isStartingGame)
+                                        ? null
+                                        : _startGame,
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: AppPanelButton(
+                                        label: '타워 관리',
+                                        icon: Icons.local_fire_department,
+                                        borderColor: borderColor,
+                                        foregroundColor: textColor,
+                                        backgroundColor: buttonFill,
+                                        onPressed: () async {
+                                          final progress = _progress;
+                                          if (progress == null) return;
+                                          final updated =
+                                              await Navigator.of(context)
+                                                  .push<AccountProgress>(
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  TowerManagementScreen(
+                                                      progress:
+                                                          progress.copy()),
+                                            ),
+                                          );
+                                          if (updated != null) {
+                                            setState(() => _progress = updated);
+                                            await _loadSettings();
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: AppPanelButton(
+                                        label: '건물 관리',
+                                        icon: Icons.home,
+                                        borderColor: borderColor,
+                                        foregroundColor: textColor,
+                                        backgroundColor: buttonFill,
+                                        onPressed: () async {
+                                          final progress = _progress;
+                                          if (progress == null) return;
+                                          final updated =
+                                              await Navigator.of(context)
+                                                  .push<AccountProgress>(
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  BuildingManagementScreen(
+                                                      progress:
+                                                          progress.copy()),
+                                            ),
+                                          );
+                                          if (updated != null) {
+                                            setState(() => _progress = updated);
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                if (_showTestMapButton) ...[
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: AppPanelButton(
+                                      label: '테스트맵',
+                                      icon: Icons.science,
+                                      borderColor: borderColor,
+                                      foregroundColor: textColor,
+                                      backgroundColor: const Color(0xCC183B5C),
+                                      onPressed: (_isLoading || _isStartingGame)
+                                          ? null
+                                          : () => _startGame(
+                                              stageId: 'test_u_stage'),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: AppPanelButton(
+                                        label: '상점',
+                                        icon: Icons.shopping_cart,
+                                        borderColor: borderColor,
+                                        foregroundColor: textColor,
+                                        backgroundColor: buttonFill,
+                                        onPressed: () async {
+                                          final progress = _progress;
+                                          if (progress == null) return;
+                                          final updated =
+                                              await Navigator.of(context)
+                                                  .push<AccountProgress>(
+                                            MaterialPageRoute(
+                                              builder: (_) => ShopScreen(
+                                                  progress: progress.copy()),
+                                            ),
+                                          );
+                                          if (updated != null) {
+                                            setState(() => _progress = updated);
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: AppPanelButton(
+                                        label: '도움말',
+                                        icon: Icons.help_outline,
+                                        borderColor: borderColor,
+                                        foregroundColor: textColor,
+                                        backgroundColor: buttonFill,
+                                        onPressed: () async {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const HelpScreen(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: AppPanelButton(
+                                        label: '랭킹',
+                                        icon: Icons.emoji_events,
+                                        borderColor: borderColor,
+                                        foregroundColor: textColor,
+                                        backgroundColor: buttonFill,
+                                        onPressed: () async {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const RankingScreen(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: AppPanelButton(
+                                        label: '설정',
+                                        icon: Icons.settings,
+                                        borderColor: borderColor,
+                                        foregroundColor: textColor,
+                                        backgroundColor: buttonFill,
+                                        onPressed: () async {
+                                          final progress = _progress;
+                                          if (progress == null) return;
+                                          final updated =
+                                              await Navigator.of(context)
+                                                  .push<AccountProgress>(
+                                            MaterialPageRoute(
+                                              builder: (_) => SettingsScreen(
+                                                progress: progress.copy(),
+                                                loginScreenBuilder: (_) =>
+                                                    LoginScreen(
+                                                  gameScreenBuilder:
+                                                      widget.gameScreenBuilder,
+                                                ),
+                                                debugRankingBuilder: (_) =>
+                                                    const DebugRankingSeedScreen(),
+                                              ),
+                                            ),
+                                          );
+                                          if (updated != null) {
+                                            setState(() => _progress = updated);
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: AppPanelButton(
+                                    label: '공식 홈페이지',
+                                    icon: Icons.language,
+                                    borderColor: borderColor,
+                                    foregroundColor: textColor,
+                                    backgroundColor: const Color(0xCC14405C),
+                                    onPressed: _openOfficialHomepage,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: AppPanelButton(
-                        label: '게임 시작',
-                        borderColor: borderColor,
-                        foregroundColor: textColor,
-                        backgroundColor: buttonFill,
-                        onPressed: _startGame,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AppPanelButton(
-                            label: '타워 관리',
-                            icon: Icons.local_fire_department,
-                            borderColor: borderColor,
-                            foregroundColor: textColor,
-                            backgroundColor: buttonFill,
-                            onPressed: () async {
-                              final progress = _progress;
-                              if (progress == null) return;
-                              final updated = await Navigator.of(context).push<AccountProgress>(
-                                MaterialPageRoute(
-                                  builder: (_) => TowerManagementScreen(progress: progress.copy()),
-                                ),
-                              );
-                              if (updated != null) {
-                                setState(() => _progress = updated);
-                              }
-                            },
+                  ),
+                ),
+                if (_isLoading)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: Container(
+                        color: const Color(0x22000000),
+                        alignment: Alignment.center,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 14,
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: AppPanelButton(
-                            label: '건물 관리',
-                            icon: Icons.home,
-                            borderColor: borderColor,
-                            foregroundColor: textColor,
-                            backgroundColor: buttonFill,
-                            onPressed: () async {
-                              final progress = _progress;
-                              if (progress == null) return;
-                              final updated = await Navigator.of(context).push<AccountProgress>(
-                                MaterialPageRoute(
-                                  builder: (_) => BuildingManagementScreen(progress: progress.copy()),
-                                ),
-                              );
-                              if (updated != null) {
-                                setState(() => _progress = updated);
-                              }
-                            },
+                          decoration: BoxDecoration(
+                            color: const Color(0xE0122136),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: borderColor,
+                              width: 1.2,
+                            ),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x40000000),
+                                blurRadius: 14,
+                                offset: Offset(0, 8),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    if (_showTestMapButton) ...[
-                      SizedBox(
-                        width: double.infinity,
-                        child: AppPanelButton(
-                          label: '테스트맵',
-                          icon: Icons.science,
-                          borderColor: borderColor,
-                          foregroundColor: textColor,
-                          backgroundColor: const Color(0xCC183B5C),
-                          onPressed: () => _startGame(stageId: 'test_u_stage'),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AppPanelButton(
-                            label: '상점',
-                            icon: Icons.shopping_cart,
-                            borderColor: borderColor,
-                            foregroundColor: textColor,
-                            backgroundColor: buttonFill,
-                            onPressed: () async {
-                              final progress = _progress;
-                              if (progress == null) return;
-                              final updated = await Navigator.of(context).push<AccountProgress>(
-                                MaterialPageRoute(
-                                  builder: (_) => ShopScreen(progress: progress.copy()),
-                                ),
-                              );
-                              if (updated != null) {
-                                setState(() => _progress = updated);
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: AppPanelButton(
-                            label: '도움말',
-                            icon: Icons.help_outline,
-                            borderColor: borderColor,
-                            foregroundColor: textColor,
-                            backgroundColor: buttonFill,
-                            onPressed: () async {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const HelpScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AppPanelButton(
-                            label: '랭킹',
-                            icon: Icons.emoji_events,
-                            borderColor: borderColor,
-                            foregroundColor: textColor,
-                            backgroundColor: buttonFill,
-                            onPressed: () async {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const RankingScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: AppPanelButton(
-                            label: '설정',
-                            icon: Icons.settings,
-                            borderColor: borderColor,
-                            foregroundColor: textColor,
-                            backgroundColor: buttonFill,
-                            onPressed: () async {
-                              final progress = _progress;
-                              if (progress == null) return;
-                              final updated = await Navigator.of(context).push<AccountProgress>(
-                                MaterialPageRoute(
-                                  builder: (_) => SettingsScreen(
-                                    progress: progress.copy(),
-                                    debugRankingBuilder: (_) => const DebugRankingSeedScreen(),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFF8FD3FF),
                                   ),
                                 ),
-                              );
-                              if (updated != null) {
-                                setState(() => _progress = updated);
-                              }
-                            },
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                '데이터 불러오는 중...',
+                                style: TextStyle(
+                                  color: Color(0xFFF3F7FF),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: AppPanelButton(
-                        label: '공식 홈페이지',
-                        icon: Icons.language,
-                        borderColor: borderColor,
-                        foregroundColor: textColor,
-                        backgroundColor: const Color(0xCC14405C),
-                        onPressed: _openOfficialHomepage,
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
+                  ),
               ],
             ),
           ),
@@ -1150,7 +1439,6 @@ class _LobbyScreenState extends State<LobbyScreen> {
       ),
     );
   }
-
 }
 
 class _LobbyFieldLabelWidth {
@@ -1161,9 +1449,9 @@ class _LobbyFieldLabelWidth {
 
 class _TopBar extends StatelessWidget {
   final Color borderColor;
+  final String nicknameLabel;
   final String goldLabel;
   final String diamondLabel;
-  final String ticketLabel;
   final String energyLabel;
   final String energyCountdown;
   final VoidCallback onEnergyPlusTap;
@@ -1171,9 +1459,9 @@ class _TopBar extends StatelessWidget {
 
   const _TopBar({
     required this.borderColor,
+    required this.nicknameLabel,
     required this.goldLabel,
     required this.diamondLabel,
-    required this.ticketLabel,
     required this.energyLabel,
     required this.energyCountdown,
     required this.onEnergyPlusTap,
@@ -1193,17 +1481,24 @@ class _TopBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _StatItem(
+            icon: Icons.person_rounded,
+            label: nicknameLabel,
+            accentColor: const Color(0xFF8FD3FF),
+            maxWidth: 88,
+          ),
+          _StatItem(
             icon: Icons.savings,
             label: goldLabel,
             accentColor: const Color(0xFFFFC857),
           ),
-          _StatItem(
-            icon: Icons.diamond,
-            label: diamondLabel,
-            accentColor: const Color(0xFF58C8FF),
-          ),
           Row(
             children: [
+              _StatItem(
+                icon: Icons.diamond,
+                label: diamondLabel,
+                accentColor: const Color(0xFF58C8FF),
+              ),
+              const SizedBox(width: 8),
               _StatItem(
                 icon: Icons.bolt,
                 label: energyLabel,
@@ -1220,7 +1515,8 @@ class _TopBar extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xCC17304B),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFFFC857), width: 1),
+                    border:
+                        Border.all(color: const Color(0xFFFFC857), width: 1),
                   ),
                   child: const Icon(
                     Icons.add,
@@ -1230,11 +1526,6 @@ class _TopBar extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-          _StatItem(
-            icon: Icons.confirmation_number,
-            label: ticketLabel,
-            accentColor: const Color(0xFF8FD3FF),
           ),
           InkWell(
             onTap: onAttendanceTap,
@@ -1265,12 +1556,14 @@ class _StatItem extends StatelessWidget {
   final String label;
   final String? subLabel;
   final Color? accentColor;
+  final double? maxWidth;
 
   const _StatItem({
     required this.icon,
     required this.label,
     this.subLabel,
     this.accentColor,
+    this.maxWidth,
   });
 
   @override
@@ -1280,28 +1573,34 @@ class _StatItem extends StatelessWidget {
       children: [
         Icon(icon, size: 16, color: accentColor ?? const Color(0xFFF3F7FF)),
         const SizedBox(width: 4),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: accentColor ?? const Color(0xFFF3F7FF),
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            if (subLabel != null)
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: maxWidth ?? double.infinity,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                subLabel!,
-                style: const TextStyle(
-                  fontSize: 9,
-                  color: Color(0xFFBFD5FF),
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: accentColor ?? const Color(0xFFF3F7FF),
                   fontWeight: FontWeight.w700,
-                  height: 1.0,
                 ),
               ),
-          ],
+              if (subLabel != null)
+                Text(
+                  subLabel!,
+                  style: const TextStyle(
+                    fontSize: 9,
+                    color: Color(0xFFBFD5FF),
+                    fontWeight: FontWeight.w700,
+                    height: 1.0,
+                  ),
+                ),
+            ],
+          ),
         ),
       ],
     );

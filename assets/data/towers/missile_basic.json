@@ -3,7 +3,7 @@
     "nameKey":  "tower.missile.name",
     "descKey":  "tower.missile.desc",
     "rarity":  "unique",
-    "baseDamage":  30,
+    "baseDamage":  27,
     "fireRate":  0.62,
     "range":  122,
     "attackType":  "projectile",
@@ -21,13 +21,13 @@
     "effects":  [
                     {
                         "type":  "vulnerability",
-                        "value":  0.2,
+                        "value":  0.16,
                         "durationSec":  2.2,
                         "atLevel":  1
                     },
                     {
                         "type":  "vulnerability",
-                        "value":  0.34,
+                        "value":  0.28,
                         "durationSec":  2.6,
                         "chance":  0.45,
                         "atLevel":  7
