@@ -7,6 +7,7 @@ class DefinitionRepository {
     r'^wave_(easy|normal|hard|endless)_(\d{2})$',
   );
   static Future<Map<String, dynamic>>? _waveOverridesFuture;
+  static Future<List<Map<String, dynamic>>>? _attendanceRewardsFuture;
 
   const DefinitionRepository({this.loader = const JsonAssetLoader()});
 
@@ -83,8 +84,16 @@ class DefinitionRepository {
   }
 
   Future<List<Map<String, dynamic>>> loadAttendanceRewards() async {
-    final list = await loader.loadList('assets/data/attendance_rewards.json');
-    return list.whereType<Map<String, dynamic>>().toList(growable: false);
+    _attendanceRewardsFuture ??= _loadAttendanceRewardsInternal();
+    return _attendanceRewardsFuture!;
+  }
+
+  Future<List<AchievementDef>> loadAchievements() async {
+    final list = await loader.loadList('assets/data/achievements.json');
+    return list
+        .whereType<Map<String, dynamic>>()
+        .map(AchievementDef.fromJson)
+        .toList(growable: false);
   }
 
   Future<Map<String, dynamic>> _loadWaveOverrides() {
@@ -98,6 +107,11 @@ class DefinitionRepository {
     } catch (_) {
       return const {};
     }
+  }
+
+  Future<List<Map<String, dynamic>>> _loadAttendanceRewardsInternal() async {
+    final list = await loader.loadList('assets/data/attendance_rewards.json');
+    return list.whereType<Map<String, dynamic>>().toList(growable: false);
   }
 
   WaveDef _buildGeneratedStoryWave(

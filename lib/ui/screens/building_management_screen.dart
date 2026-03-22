@@ -6,6 +6,7 @@ import 'package:tower_defense/data/repositories/balance_repository.dart';
 import 'package:tower_defense/data/repositories/economy_log_repository.dart';
 import 'package:tower_defense/domain/progress/account_progress.dart';
 import 'package:tower_defense/domain/progress/core_progress.dart';
+import 'package:tower_defense/shared/ad_service.dart';
 import 'package:tower_defense/shared/audio_service.dart';
 import 'package:tower_defense/ui/widgets/panel_button.dart';
 
@@ -239,6 +240,12 @@ class _BuildingManagementScreenState extends State<BuildingManagementScreen> {
       confirmLabel: fullRefund ? '광고 초기화' : '초기화',
     );
     if (ok != true) return;
+
+    if (fullRefund) {
+      final watched = await AppAdService.instance.showRewardedAd();
+      if (!mounted) return;
+      if (!watched) return;
+    }
 
     final previousCoreLevel = core.level;
     setState(() {

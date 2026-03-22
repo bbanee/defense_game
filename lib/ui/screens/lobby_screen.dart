@@ -3,11 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:tower_defense/data/definition_repository.dart';
 import 'package:tower_defense/data/repositories/account_progress_repository.dart';
+import 'package:tower_defense/data/repositories/achievement_repository.dart';
 import 'package:tower_defense/data/repositories/economy_log_repository.dart';
+import 'package:tower_defense/data/repositories/ranking_repository.dart';
 import 'package:tower_defense/data/repositories/settings_repository.dart';
 import 'package:tower_defense/domain/progress/account_progress.dart';
+import 'package:tower_defense/shared/ad_service.dart';
 import 'package:tower_defense/shared/audio_service.dart';
 import 'package:tower_defense/ui/screens/building_management_screen.dart';
+import 'package:tower_defense/ui/screens/achievement_screen.dart';
 import 'package:tower_defense/ui/screens/help_screen.dart';
 import 'package:tower_defense/ui/screens/login_screen.dart';
 import 'package:tower_defense/ui/screens/ranking_screen.dart';
@@ -52,16 +56,23 @@ class _LobbyScreenState extends State<LobbyScreen> {
   bool _isStartingGame = false;
   final DefinitionRepository _definitionRepo = DefinitionRepository();
   final AccountProgressRepository _progressRepo = AccountProgressRepository();
+  final AchievementRepository _achievementRepo = AchievementRepository();
   final EconomyLogRepository _economyLogRepo = EconomyLogRepository();
+  final RankingRepository _rankingRepo = RankingRepository();
   final SettingsRepository _settingsRepo = SettingsRepository();
   Timer? _energyTimer;
   bool _showDamage = true;
+  List<Map<String, dynamic>>? _attendanceRewards;
+  Future<List<Map<String, dynamic>>>? _attendanceRewardsFuture;
+  Future<void>? _settingsWarmupFuture;
   _AttendanceClaimResult? _pendingAttendanceDialog;
   bool _isAttendanceDialogOpen = false;
 
   @override
   void initState() {
     super.initState();
+    _attendanceRewardsFuture = _definitionRepo.loadAttendanceRewards();
+    _settingsWarmupFuture = _loadSettings();
     final initialProgress = widget.initialProgress?.copy();
     if (initialProgress != null) {
       _initializeEnergyClock(initialProgress);
@@ -69,7 +80,6 @@ class _LobbyScreenState extends State<LobbyScreen> {
       _normalizeSelections(initialProgress);
       _progress = initialProgress;
       _isLoading = false;
-      unawaited(_loadSettings());
       unawaited(_finishLobbyBootstrap(initialProgress, changed));
     } else {
       _loadProgress();
@@ -79,7 +89,10 @@ class _LobbyScreenState extends State<LobbyScreen> {
       if (changed && _progress != null) {
         _progressRepo.scheduleSave(_progress!);
       }
-      if (mounted) {
+      // 에너지가 변하거나 카운트다운이 진행 중일 때만 리빌드
+      final p = _progress;
+      final needsCountdown = p != null && p.energy < p.maxEnergy;
+      if (mounted && (changed || needsCountdown)) {
         setState(() {});
       }
     });
@@ -93,8 +106,8 @@ class _LobbyScreenState extends State<LobbyScreen> {
   }
 
   Future<void> _loadProgress() async {
+    _settingsWarmupFuture ??= _loadSettings();
     final data = await _progressRepo.load();
-    unawaited(_loadSettings());
     _initializeEnergyClock(data);
     final changed = _applyEnergyRegenTo(data);
     _normalizeSelections(data);
@@ -123,13 +136,18 @@ class _LobbyScreenState extends State<LobbyScreen> {
     if (changed) {
       _progressRepo.scheduleSave(data);
     }
-    final attendanceRewards = await _definitionRepo.loadAttendanceRewards();
+    unawaited(_achievementRepo.warmUp(data));
+    unawaited(_rankingRepo.warmUp());
+    final attendanceRewards = _attendanceRewards ??
+        await (_attendanceRewardsFuture ??=
+            _definitionRepo.loadAttendanceRewards());
+    _attendanceRewards = attendanceRewards;
     final attendanceResult = _applyAttendanceCheck(
       data,
       attendanceRewards,
     );
     if (attendanceResult != null) {
-      await _progressRepo.save(data);
+      _progressRepo.scheduleSave(data);
       if (!mounted) return;
       setState(() => _progress = data);
       _pendingAttendanceDialog = attendanceResult;
@@ -539,8 +557,6 @@ class _LobbyScreenState extends State<LobbyScreen> {
     if (progress == null || _isLoading || _isStartingGame) return;
     setState(() => _isStartingGame = true);
     try {
-      final settings = await _settingsRepo.load();
-      _showDamage = settings.showDamage;
       if (_gameMode == '무한 모드' && !_isInfiniteUnlocked(progress)) {
         await _showStyledNoticeDialog(
           title: '무한 모드 잠김',
@@ -607,6 +623,8 @@ class _LobbyScreenState extends State<LobbyScreen> {
           ),
         ),
       );
+      // 게임 종료 후 BGM이 멈춘 상태이므로 로비 BGM 재시작
+      unawaited(AppAudioService.instance.playBgm(AudioBgmTrack.lobby));
       final refreshed = await _progressRepo.load();
       _initializeEnergyClock(refreshed);
       _applyEnergyRegenTo(refreshed);
@@ -807,6 +825,9 @@ class _LobbyScreenState extends State<LobbyScreen> {
         balanceAfter: progress.energy,
       ));
     } else if (action == 'ad') {
+      final watched = await AppAdService.instance.showRewardedAd();
+      if (!mounted) return;
+      if (!watched) return;
       setState(() {
         progress.energy += energyAmount;
       });
@@ -817,7 +838,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
     } else {
       return;
     }
-    await _progressRepo.save(progress);
+    _progressRepo.scheduleSave(progress);
   }
 
   Future<void> _openOfficialHomepage() async {
@@ -835,16 +856,6 @@ class _LobbyScreenState extends State<LobbyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_pendingAttendanceDialog != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        unawaited(
-          _definitionRepo
-              .loadAttendanceRewards()
-              .then(_tryShowPendingAttendanceDialog),
-        );
-      });
-    }
     final borderColor = const Color(0xFF8CB8FF);
     final bgColor = const Color(0xFF07111F);
     final textColor = const Color(0xFFF3F7FF);
@@ -927,8 +938,11 @@ class _LobbyScreenState extends State<LobbyScreen> {
                                       _energyCountdownLabel(_progress),
                                   onEnergyPlusTap: _buyEnergyQuick,
                                   onAttendanceTap: () async {
-                                    final rewards = await _definitionRepo
-                                        .loadAttendanceRewards();
+                                    if (_isAttendanceDialogOpen) return;
+                                    final rewards = _attendanceRewards ??
+                                        await _definitionRepo
+                                            .loadAttendanceRewards();
+                                    _attendanceRewards = rewards;
                                     if (!mounted) return;
                                     await _showAttendanceDialog(
                                       day: _progress?.attendanceDay ?? 0,
@@ -1205,7 +1219,7 @@ class _LobbyScreenState extends State<LobbyScreen> {
                                           );
                                           if (updated != null) {
                                             setState(() => _progress = updated);
-                                            await _loadSettings();
+                                            unawaited(_loadSettings());
                                           }
                                         },
                                       ),
@@ -1359,16 +1373,47 @@ class _LobbyScreenState extends State<LobbyScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 12),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: AppPanelButton(
-                                    label: '공식 홈페이지',
-                                    icon: Icons.language,
-                                    borderColor: borderColor,
-                                    foregroundColor: textColor,
-                                    backgroundColor: const Color(0xCC14405C),
-                                    onPressed: _openOfficialHomepage,
-                                  ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: AppPanelButton(
+                                        label: '업적',
+                                        icon: Icons.workspace_premium,
+                                        borderColor: borderColor,
+                                        foregroundColor: textColor,
+                                        backgroundColor: buttonFill,
+                                        compact: true,
+                                        onPressed: () async {
+                                          final progress = _progress;
+                                          if (progress == null) return;
+                                          final updated =
+                                              await Navigator.of(context)
+                                                  .push<AccountProgress>(
+                                            MaterialPageRoute(
+                                              builder: (_) => AchievementScreen(
+                                                progress: progress.copy(),
+                                              ),
+                                            ),
+                                          );
+                                          if (updated != null) {
+                                            setState(() => _progress = updated);
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: AppPanelButton(
+                                        label: '공식 홈페이지',
+                                        icon: Icons.language,
+                                        borderColor: borderColor,
+                                        foregroundColor: textColor,
+                                        backgroundColor: const Color(0xCC14405C),
+                                        compact: true,
+                                        onPressed: _openOfficialHomepage,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),

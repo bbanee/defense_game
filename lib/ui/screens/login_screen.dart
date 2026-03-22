@@ -380,7 +380,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: AppPanelButton(
-                              label: _openingLobby ? '연결 중...' : '게스트 로그인',
+                              label: _openingLobby ? '연결 중...' : 'Guest Login',
                               icon: Icons.person_outline_rounded,
                               borderColor: borderColor,
                               foregroundColor: textColor,

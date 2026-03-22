@@ -2,7 +2,9 @@ part of 'tower_defense_game.dart';
 
 class TowerDefenseGame extends FlameGame with TapCallbacks {
   static const int maxPlacedTowers = 10;
-  static const bool showDebugUi = true;
+  static const bool showDebugUi = !bool.fromEnvironment('dart.vm.product');
+  static const int _maxDamageTextsPerFrame = 18;
+  static const int _maxVisualEffectsPerFrame = 36;
   final VoidCallback? onExitToLobby;
   final String difficultyId;
   final String stageId;
@@ -84,6 +86,11 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
   bool resultActionPending = false;
   bool continueUsed = false;
   bool adSpeedUnlocked = false;
+  Future<void>? _endRewardsFuture;
+  Future<void>? _stageRankingFuture;
+  Future<void>? _infiniteScoreFuture;
+  int _damageTextsSpawnedThisFrame = 0;
+  int _visualEffectsSpawnedThisFrame = 0;
 
   TowerPicker? picker;
   TowerActionPanel? towerPanel;
@@ -221,6 +228,8 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
 
   @override
   void update(double dt) {
+    _damageTextsSpawnedThisFrame = 0;
+    _visualEffectsSpawnedThisFrame = 0;
     if (defeated || victory) {
       super.update(dt);
       return;
@@ -551,6 +560,8 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
 
   void spawnTowerEffect(String towerId, int index, Vector2 worldPos,
       {double scale = 1.0}) {
+    if (_visualEffectsSpawnedThisFrame >= _maxVisualEffectsPerFrame) return;
+    _visualEffectsSpawnedThisFrame++;
     final path = _towerEffectPath(towerId, index);
     final size = Vector2(tileSize * 0.9 * scale, tileSize * 0.9 * scale);
     final effect = TowerEffect(
@@ -564,6 +575,8 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
 
   void spawnTowerSpecialEffect(String towerId, Enemy target,
       {double scale = 1.0}) {
+    if (_visualEffectsSpawnedThisFrame >= _maxVisualEffectsPerFrame) return;
+    _visualEffectsSpawnedThisFrame++;
     final effect = EnemyAttachedTowerEffect(
       gameRef: this,
       target: target,
@@ -575,6 +588,8 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
 
   void spawnDamageText(Vector2 worldPos, double amount) {
     if (!showDamage) return;
+    if (_damageTextsSpawnedThisFrame >= _maxDamageTextsPerFrame) return;
+    _damageTextsSpawnedThisFrame++;
     String text;
     if (amount >= 1000) {
       text = (amount / 1000).toStringAsFixed(amount >= 10000 ? 0 : 1) + 'K';
@@ -619,6 +634,8 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
   }
 
   void spawnShockwave(Vector2 worldPos, ShockwaveDef def) {
+    if (_visualEffectsSpawnedThisFrame >= _maxVisualEffectsPerFrame) return;
+    _visualEffectsSpawnedThisFrame++;
     final effect = ShockwaveEffect(
       worldPos: worldPos,
       color: def.color,
@@ -631,6 +648,8 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
 
   void spawnEnemyEffect(EnemyType type, Vector2 worldPos,
       {double scale = 1.0}) {
+    if (_visualEffectsSpawnedThisFrame >= _maxVisualEffectsPerFrame) return;
+    _visualEffectsSpawnedThisFrame++;
     final path = _enemyEffectPath(type);
     final size = Vector2(tileSize * 0.9 * scale, tileSize * 0.9 * scale);
     final effect = TowerEffect(
@@ -746,9 +765,7 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     speedAdOverlay = null;
     _closePicker();
     _closeTowerPanel();
-    unawaited(AppAudioService.instance.stopBgm());
-    unawaited(AppAudioService.instance.stopAllSfx());
-    unawaited(AppAudioService.instance.playVictoryJingle());
+    unawaited(AppAudioService.instance.playVictoryJingle()); // 내부에서 stopBgm/stopAllSfx 처리
     unawaited(_grantEndRewardsIfNeeded());
     if (!isInfiniteMode) {
       unawaited(_saveStageRankingIfNeeded());
@@ -763,6 +780,7 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
   }
 
   void _showDefeatResult() {
+    if (resultOverlay != null) return;
     defeated = true;
     spawner.pauseSpawning();
     timeScale = 1.0;
@@ -777,9 +795,7 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
       enemy.removeFromParent();
     }
     enemies.clear();
-    unawaited(AppAudioService.instance.stopBgm());
-    unawaited(AppAudioService.instance.stopAllSfx());
-    unawaited(AppAudioService.instance.playDefeatJingle());
+    unawaited(AppAudioService.instance.playDefeatJingle()); // 내부에서 stopBgm/stopAllSfx 처리
     if (isInfiniteMode) {
       finalInfiniteScore = _calculateInfiniteScore();
       unawaited(_saveInfiniteScoreIfNeeded());
@@ -809,7 +825,8 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     coreShield = coreMaxShield;
     core.setStats(coreHp, coreMaxHp, coreShield, coreMaxShield);
     defeated = false;
-    waveClearRewarded = false;
+    // waveClearRewarded는 리셋하지 않음:
+    // 이미 클리어 보상을 받은 웨이브는 true를 유지하여 컨티뉴 후 중복 지급 방지
     waveAdvanceDelayTimer = 0;
     spawner.resetWith(waves[currentWaveIndex]);
     spawnBattleNotice('광고 컨티뉴: 현재 웨이브 재시작');
@@ -818,9 +835,16 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
   Future<void> _handleSpeedAdOverlayAction(SpeedAdOverlayAction action) async {
     try {
       if (action == SpeedAdOverlayAction.unlockAd) {
-        adSpeedUnlocked = true;
-        timeScale = 2.0;
-        spawnBattleNotice('광고 보상: 2배속 사용 가능');
+        final watched = await AppAdService.instance.showRewardedAd();
+        if (watched) {
+          adSpeedUnlocked = true;
+          timeScale = 2.0;
+          spawnBattleNotice('광고 보상: 2배속 사용 가능');
+          speedAdOverlay?.removeFromParent();
+          speedAdOverlay = null;
+        }
+        // 광고 미시청 시 오버레이 유지 (다시 시도 가능)
+        return;
       }
       speedAdOverlay?.removeFromParent();
       speedAdOverlay = null;
@@ -908,10 +932,26 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
   }
 
   Future<void> _grantEndRewardsIfNeeded() async {
+    final inFlight = _endRewardsFuture;
+    if (inFlight != null) {
+      await inFlight;
+      return;
+    }
+    final future = _grantEndRewardsInternal();
+    _endRewardsFuture = future;
+    try {
+      await future;
+    } finally {
+      if (identical(_endRewardsFuture, future)) {
+        _endRewardsFuture = null;
+      }
+    }
+  }
+
+  Future<void> _grantEndRewardsInternal() async {
     if (isInfiniteMode || endRewardsGranted || stageDef.id == 'test_u_stage') {
       return;
     }
-    endRewardsGranted = true;
     final reached = (currentWaveIndex + 1).clamp(0, waves.length);
     final currentBest = accountProgress.bestWaveByDifficulty[difficultyId] ?? 0;
     if (reached > currentBest) {
@@ -922,6 +962,7 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     endRewardGold = rewards.gold;
     endRewardTickets = rewards.tickets;
     if (rewards.gold <= 0 && rewards.tickets <= 0) {
+      endRewardsGranted = true;
       return;
     }
 
@@ -931,10 +972,55 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
       accountProgress.shardDrawTickets += rewards.tickets;
     }
 
+    if (rewards.gold > 0) {
+      unawaited(EconomyLogRepository().logCurrencyChange(
+        source: 'battle_end_reward',
+        currency: 'accountGold',
+        amount: rewards.gold,
+        balanceAfter: accountProgress.accountGold,
+        metadata: {
+          'stageId': stageDef.id,
+          'difficultyId': difficultyId,
+          'reachedWave': reached,
+        },
+      ));
+    }
+    if (rewards.tickets > 0) {
+      unawaited(EconomyLogRepository().logCurrencyChange(
+        source: 'battle_end_reward',
+        currency: 'shardDrawTickets',
+        amount: rewards.tickets,
+        balanceAfter: accountProgress.shardDrawTickets,
+        metadata: {
+          'stageId': stageDef.id,
+          'difficultyId': difficultyId,
+          'reachedWave': reached,
+        },
+      ));
+    }
+
     await AccountProgressRepository().save(accountProgress);
+    endRewardsGranted = true;  // 저장 성공 후에만 플래그 설정
   }
 
   Future<void> _saveStageRankingIfNeeded() async {
+    final inFlight = _stageRankingFuture;
+    if (inFlight != null) {
+      await inFlight;
+      return;
+    }
+    final future = _saveStageRankingInternal();
+    _stageRankingFuture = future;
+    try {
+      await future;
+    } finally {
+      if (identical(_stageRankingFuture, future)) {
+        _stageRankingFuture = null;
+      }
+    }
+  }
+
+  Future<void> _saveStageRankingInternal() async {
     if (isInfiniteMode || stageRankingSaved || stageDef.id == 'test_u_stage') {
       return;
     }
@@ -953,12 +1039,16 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     if (!rankingRepo.hasAuthenticatedUser) {
       return;
     }
-    await rankingRepo.addStageScore(
-      rankingPlayerName,
-      reached,
-      detail: difficultyLabel,
-    );
-    stageRankingSaved = true;
+    try {
+      await rankingRepo.addStageScore(
+        rankingPlayerName,
+        reached,
+        detail: difficultyLabel,
+      );
+      stageRankingSaved = true;
+    } catch (e, st) {
+      debugPrint('[RankingSave] 랭킹 저장 실패: $e\n$st');
+    }
   }
 
   Future<void> _doubleEndRewards() async {
@@ -976,10 +1066,53 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     if (endRewardTickets > 0) {
       accountProgress.shardDrawTickets += endRewardTickets;
     }
+    if (endRewardGold > 0) {
+      unawaited(EconomyLogRepository().logCurrencyChange(
+        source: 'battle_end_reward_double',
+        currency: 'accountGold',
+        amount: endRewardGold,
+        balanceAfter: accountProgress.accountGold,
+        metadata: {
+          'stageId': stageDef.id,
+          'difficultyId': difficultyId,
+          'reachedWave': (currentWaveIndex + 1).clamp(0, waves.length),
+        },
+      ));
+    }
+    if (endRewardTickets > 0) {
+      unawaited(EconomyLogRepository().logCurrencyChange(
+        source: 'battle_end_reward_double',
+        currency: 'shardDrawTickets',
+        amount: endRewardTickets,
+        balanceAfter: accountProgress.shardDrawTickets,
+        metadata: {
+          'stageId': stageDef.id,
+          'difficultyId': difficultyId,
+          'reachedWave': (currentWaveIndex + 1).clamp(0, waves.length),
+        },
+      ));
+    }
     await AccountProgressRepository().save(accountProgress);
   }
 
   Future<void> _saveInfiniteScoreIfNeeded() async {
+    final inFlight = _infiniteScoreFuture;
+    if (inFlight != null) {
+      await inFlight;
+      return;
+    }
+    final future = _saveInfiniteScoreInternal();
+    _infiniteScoreFuture = future;
+    try {
+      await future;
+    } finally {
+      if (identical(_infiniteScoreFuture, future)) {
+        _infiniteScoreFuture = null;
+      }
+    }
+  }
+
+  Future<void> _saveInfiniteScoreInternal() async {
     if (!isInfiniteMode ||
         infiniteScoreSaved ||
         stageDef.id == 'test_u_stage') {
@@ -993,11 +1126,15 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     if (!rankingRepo.hasAuthenticatedUser) {
       return;
     }
-    await rankingRepo.addInfiniteScore(
-      rankingPlayerName,
-      finalInfiniteScore,
-    );
-    infiniteScoreSaved = true;
+    try {
+      await rankingRepo.addInfiniteScore(
+        rankingPlayerName,
+        finalInfiniteScore,
+      );
+      infiniteScoreSaved = true;
+    } catch (e, st) {
+      debugPrint('[InfiniteSave] 점수 저장 실패: $e\n$st');
+    }
     await AccountProgressRepository().save(accountProgress);
   }
 
@@ -1005,55 +1142,71 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     final reachedWave = isInfiniteMode
         ? displayedWaveNumber
         : (currentWaveIndex + 1).clamp(0, waves.length);
-    if (isInfiniteMode) {
-      unawaited(_saveInfiniteScoreIfNeeded());
+    try {
+      if (isInfiniteMode) {
+        await _saveInfiniteScoreIfNeeded();
+        unawaited(AnalyticsRepository().logBattleResult(
+          playerName: rankingPlayerName,
+          mode: 'infinite',
+          difficultyId: difficultyId,
+          stageId: stageDef.id,
+          reachedWave: reachedWave,
+          victory: false,
+          accountGoldReward: 0,
+          ticketReward: 0,
+          infiniteScore: finalInfiniteScore,
+          highestPlacedTowerCount: highestPlacedTowerCount,
+          usedContinue: continueUsed,
+        ));
+        return;
+      }
+      if (action == ResultOverlayAction.doubleReward) {
+        final watched = await AppAdService.instance.showRewardedAd();
+        if (watched) {
+          await _doubleEndRewards();
+        } else {
+          await _grantEndRewardsIfNeeded();
+        }
+      } else {
+        await _grantEndRewardsIfNeeded();
+      }
+      await _saveStageRankingIfNeeded();
       unawaited(AnalyticsRepository().logBattleResult(
         playerName: rankingPlayerName,
-        mode: 'infinite',
+        mode: 'story',
         difficultyId: difficultyId,
         stageId: stageDef.id,
         reachedWave: reachedWave,
-        victory: false,
-        accountGoldReward: 0,
-        ticketReward: 0,
-        infiniteScore: finalInfiniteScore,
+        victory: victory,
+        accountGoldReward: endRewardsDoubled ? endRewardGold * 2 : endRewardGold,
+        ticketReward: endRewardsDoubled ? endRewardTickets * 2 : endRewardTickets,
+        infiniteScore: 0,
         highestPlacedTowerCount: highestPlacedTowerCount,
         usedContinue: continueUsed,
       ));
+    } catch (e, st) {
+      debugPrint('[ResultAction] 저장 중 오류: $e\n$st');
+    } finally {
       onExitToLobby?.call();
-      return;
     }
-    unawaited(_saveStageRankingIfNeeded());
-    if (action == ResultOverlayAction.doubleReward) {
-      unawaited(_doubleEndRewards());
-    } else {
-      unawaited(_grantEndRewardsIfNeeded());
-    }
-    unawaited(AnalyticsRepository().logBattleResult(
-      playerName: rankingPlayerName,
-      mode: 'story',
-      difficultyId: difficultyId,
-      stageId: stageDef.id,
-      reachedWave: reachedWave,
-      victory: victory,
-      accountGoldReward: endRewardsDoubled ? endRewardGold * 2 : endRewardGold,
-      ticketReward: endRewardsDoubled ? endRewardTickets * 2 : endRewardTickets,
-      infiniteScore: 0,
-      highestPlacedTowerCount: highestPlacedTowerCount,
-      usedContinue: continueUsed,
-    ));
-    onExitToLobby?.call();
   }
 
   Future<void> _handleContinueOverlayAction(
       ContinueOverlayAction action) async {
-    if (action == ContinueOverlayAction.continueAd) {
-      _continueFromDefeat();
-    } else {
-      continueOverlay?.removeFromParent();
-      continueOverlay = null;
-      _showDefeatResult();
+    try {
+      if (action == ContinueOverlayAction.continueAd) {
+        final watched = await AppAdService.instance.showRewardedAd();
+        if (watched) {
+          _continueFromDefeat();
+        }
+        // 광고 미시청 시 오버레이 유지 (다시 시도 또는 포기 선택 가능)
+      } else {
+        continueOverlay?.removeFromParent();
+        continueOverlay = null;
+        _showDefeatResult();
+      }
+    } finally {
+      resultActionPending = false;
     }
-    resultActionPending = false;
   }
 }

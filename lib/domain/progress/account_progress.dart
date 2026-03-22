@@ -59,6 +59,7 @@ class AccountProgress {
   String? _adDailyDate;
   int? _adPointResetDailyCount;
   int? _adShardDrawTenDailyCount;
+  final List<String> claimedAchievementIds;
   final Map<String, int> bestWaveByDifficulty;
   final Map<String, TowerProgress> towers;
   final Map<String, TowerLobbyUpgradeProgress> lobbyUpgrades;
@@ -87,21 +88,22 @@ class AccountProgress {
 
   AccountProgress({
     this.nickname = '',
-    this.accountGold = 0,
-    this.diamonds = 0,
+    this.accountGold = 10000,
+    this.diamonds = 1500,
     this.energy = 30,
     this.maxEnergy = 30,
     this.bestInfiniteWave = 0,
     String? lastEnergyAtIso = '',
     String? lastAttendanceDate = '',
     int? attendanceDay = 0,
-    int? shardDrawTickets = 0,
+    int? shardDrawTickets = 20,
     String? shardDrawDailyDate = '',
     int? shardDrawSingleDailyCount = 0,
     int? shardDrawTenDailyCount = 0,
     String? adDailyDate = '',
     int? adPointResetDailyCount = 0,
     int? adShardDrawTenDailyCount = 0,
+    List<String>? claimedAchievementIds,
     Map<String, int>? bestWaveByDifficulty,
     Map<String, TowerProgress>? towers,
     Map<String, TowerLobbyUpgradeProgress>? lobbyUpgrades,
@@ -116,6 +118,7 @@ class AccountProgress {
         _adDailyDate = adDailyDate ?? '',
         _adPointResetDailyCount = adPointResetDailyCount ?? 0,
         _adShardDrawTenDailyCount = adShardDrawTenDailyCount ?? 0,
+        claimedAchievementIds = claimedAchievementIds ?? <String>[],
         bestWaveByDifficulty = bestWaveByDifficulty ?? {},
         towers = towers ?? {},
         lobbyUpgrades = lobbyUpgrades ?? {},
@@ -161,6 +164,10 @@ class AccountProgress {
       adDailyDate: json['adDailyDate'] as String? ?? '',
       adPointResetDailyCount: json['adPointResetDailyCount'] as int? ?? 0,
       adShardDrawTenDailyCount: json['adShardDrawTenDailyCount'] as int? ?? 0,
+      claimedAchievementIds:
+          (json['claimedAchievementIds'] as List<dynamic>? ?? const [])
+              .whereType<String>()
+              .toList(growable: false),
       bestWaveByDifficulty: bestWaveByDifficulty,
       towers: towerMap,
       lobbyUpgrades: lobbyMap,
@@ -186,6 +193,7 @@ class AccountProgress {
       'adDailyDate': adDailyDate,
       'adPointResetDailyCount': adPointResetDailyCount,
       'adShardDrawTenDailyCount': adShardDrawTenDailyCount,
+      'claimedAchievementIds': claimedAchievementIds,
       'bestWaveByDifficulty': bestWaveByDifficulty,
       'towers': towers.values.map((e) => e.toJson()).toList(),
       'lobbyUpgrades': {
@@ -223,6 +231,7 @@ class AccountProgress {
       adDailyDate: adDailyDate,
       adPointResetDailyCount: adPointResetDailyCount,
       adShardDrawTenDailyCount: adShardDrawTenDailyCount,
+      claimedAchievementIds: List<String>.from(claimedAchievementIds),
       bestWaveByDifficulty: Map<String, int>.from(bestWaveByDifficulty),
       towers: copyTowers,
       lobbyUpgrades: copyLobby,

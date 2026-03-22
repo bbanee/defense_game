@@ -91,7 +91,7 @@ class Tower extends PositionComponent {
       AppAudioService.instance.playTowerAttack(
         towerId,
         isUltimate: isUltimate,
-        attackIntervalSec: fireRate,
+        attackIntervalSec: fireRate / gameRef.timeScale,
         sourceKey: '${grid.x},${grid.y}',
       ),
     );
@@ -181,23 +181,11 @@ class Tower extends PositionComponent {
       _ => 0.3,
     };
     final radiusTiles = (def.projectileSize / 24.0).clamp(1.0, 1.8);
-    final radius = gameRef.tileSize * radiusTiles;
     final splashDamage = baseDamage * ratio;
 
-    final nearby = gameRef.enemies
-        .where((e) => !e.isRemoved && e != primary && !e.isDying)
-        .toList()
-      ..sort((a, b) => a.position
-          .distanceTo(primary.position)
-          .compareTo(b.position.distanceTo(primary.position)));
-
-    int hitCount = 0;
-    for (final enemy in nearby) {
-      if (hitCount >= 4) break;
-      if (enemy.position.distanceTo(primary.position) > radius) break;
+    for (final enemy in _nearbyEnemies(primary, radiusTiles: radiusTiles, maxTargets: 4)) {
       enemy.takeDamage(splashDamage);
       gameRef.spawnTowerEffect(towerId, 2, enemy.effectCenter, scale: 1.1);
-      hitCount++;
     }
   }
 
@@ -205,24 +193,12 @@ class Tower extends PositionComponent {
     final ratio = (spec.value ?? 0.35).clamp(0.05, 1.2);
     final maxTargets = (spec.maxStack ?? 1).clamp(1, 5);
     final radiusTiles = (spec.durationSec ?? 1.4).clamp(0.5, 3.0);
-    final radius = gameRef.tileSize * radiusTiles;
     final arcDamage = baseDamage * ratio;
 
-    final candidates = gameRef.enemies
-        .where((e) => !e.isRemoved && e != primary && !e.isDying)
-        .toList()
-      ..sort((a, b) => a.position
-          .distanceTo(primary.position)
-          .compareTo(b.position.distanceTo(primary.position)));
-
-    int hit = 0;
-    for (final enemy in candidates) {
-      if (hit >= maxTargets) break;
-      if (enemy.position.distanceTo(primary.position) > radius) break;
+    for (final enemy in _nearbyEnemies(primary, radiusTiles: radiusTiles, maxTargets: maxTargets)) {
       enemy.takeDamage(arcDamage);
       gameRef.spawnTowerEffect(towerId, 2, enemy.effectCenter, scale: 1.2);
       _showSpecialHitEffect(enemy);
-      hit++;
     }
   }
 
@@ -475,19 +451,17 @@ class Tower extends PositionComponent {
     required int maxTargets,
   }) {
     final radius = gameRef.tileSize * radiusTiles;
-    final candidates = gameRef.enemies
-        .where((e) => !e.isRemoved && !e.isDying && e != primary)
-        .toList()
-      ..sort((a, b) => a.position
-          .distanceTo(primary.position)
-          .compareTo(b.position.distanceTo(primary.position)));
-    final result = <Enemy>[];
-    for (final enemy in candidates) {
-      if (result.length >= maxTargets) break;
-      if (enemy.position.distanceTo(primary.position) > radius) break;
-      result.add(enemy);
+    final radiusSq = radius * radius;
+    final filtered = <(double, Enemy)>[];
+    for (final e in gameRef.enemies) {
+      if (e.isRemoved || e.isDying || e == primary) continue;
+      final dSq = e.position.distanceToSquared(primary.position);
+      if (dSq > radiusSq) continue;
+      filtered.add((dSq, e));
+      if (filtered.length >= maxTargets * 3) break;
     }
-    return result;
+    filtered.sort((a, b) => a.$1.compareTo(b.$1));
+    return filtered.take(maxTargets).map((e) => e.$2).toList();
   }
 
   double _trackBonus(String trackId) {
@@ -596,33 +570,42 @@ class Tower extends PositionComponent {
   }
 
   Enemy? _findTarget(List<Enemy> enemies) {
+    final rangeSq = range * range;
+
+    // nearest: 정렬 없이 선형 탐색으로 최소 거리 적만 반환
+    if (gameRef.currentRule == TargetingRule.nearest) {
+      Enemy? best;
+      double bestDSq = double.infinity;
+      for (final enemy in enemies) {
+        if (enemy.isRemoved) continue;
+        final dSq = enemy.position.distanceToSquared(position);
+        if (dSq <= rangeSq && dSq < bestDSq) {
+          bestDSq = dSq;
+          best = enemy;
+        }
+      }
+      return best;
+    }
+
+    // 그 외 타겟팅 규칙: 범위 내 적 필터링 후 비교
     final inRange = <Enemy>[];
     for (final enemy in enemies) {
       if (enemy.isRemoved) continue;
-      if (enemy.position.distanceTo(position) <= range) {
+      if (enemy.position.distanceToSquared(position) <= rangeSq) {
         inRange.add(enemy);
       }
     }
     if (inRange.isEmpty) return null;
 
-    switch (gameRef.currentRule) {
-      case TargetingRule.nearest:
-        inRange.sort((a, b) => a.position
-            .distanceTo(position)
-            .compareTo(b.position.distanceTo(position)));
-        break;
-      case TargetingRule.farthestProgress:
-        inRange.sort((a, b) => b.progress.compareTo(a.progress));
-        break;
-      case TargetingRule.highestHp:
-        inRange.sort((a, b) => b.hp.compareTo(a.hp));
-        break;
-      case TargetingRule.lowestHp:
-        inRange.sort((a, b) => a.hp.compareTo(b.hp));
-        break;
-    }
-
-    return inRange.first;
+    return switch (gameRef.currentRule) {
+      TargetingRule.farthestProgress =>
+        inRange.reduce((a, b) => a.progress >= b.progress ? a : b),
+      TargetingRule.highestHp =>
+        inRange.reduce((a, b) => a.hp >= b.hp ? a : b),
+      TargetingRule.lowestHp =>
+        inRange.reduce((a, b) => a.hp <= b.hp ? a : b),
+      _ => inRange.first,
+    };
   }
 
   @override
@@ -788,7 +771,11 @@ class SpawnController extends Component {
   void update(double dt) {
     if (paused) return;
     timer += dt;
-    while (index < waveDef.spawns.length) {
+    // 서브스텝당 최대 스폰 수 제한 — 4x 이상 배속에서 한 프레임에
+    // 적이 폭발적으로 쏟아지는 현상 방지
+    int spawnedThisStep = 0;
+    const maxSpawnsPerStep = 6;
+    while (index < waveDef.spawns.length && spawnedThisStep < maxSpawnsPerStep) {
       final entry = waveDef.spawns[index];
       if (remainingInEntry == 0) {
         if (timer < entry.at) {
@@ -801,6 +788,7 @@ class SpawnController extends Component {
       if (timer >= nextSpawnAt) {
         game.spawnEnemyById(entry.enemyId);
         remainingInEntry--;
+        spawnedThisStep++;
         if (remainingInEntry > 0) {
           nextSpawnAt += entry.intervalMs / 1000.0;
         } else {

@@ -559,7 +559,11 @@ extension _TowerManagementScreenViewExt on _TowerManagementScreenState {
                                         : '초기화 불가',
                                     compact: true,
                                     onPressed: usedPoints > 0
-                                        ? () {
+                                        ? () async {
+                                            final watched = await AppAdService
+                                                .instance
+                                                .showRewardedAd();
+                                            if (!watched) return;
                                             final now = DateTime.now();
                                             final month = now.month
                                                 .toString()

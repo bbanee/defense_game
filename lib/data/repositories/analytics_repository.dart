@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:tower_defense/data/repositories/achievement_repository.dart';
 
 class AnalyticsRepository {
   final FirebaseFirestore _firestore;
@@ -12,6 +15,29 @@ class AnalyticsRepository {
         _auth = auth ?? FirebaseAuth.instance;
 
   String? get _uid => _auth.currentUser?.uid;
+
+  Future<Map<String, dynamic>> loadOpsStats() async {
+    final uid = _uid;
+    if (uid == null) return const {};
+    final doc = _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('opsStats')
+        .doc('main');
+    try {
+      final cached = await doc.get(const GetOptions(source: Source.cache));
+      final cachedData = cached.data();
+      if (cachedData != null && cachedData.isNotEmpty) {
+        return cachedData;
+      }
+    } catch (_) {}
+    try {
+      final snap = await doc.get().timeout(const Duration(seconds: 2));
+      return snap.data() ?? const <String, dynamic>{};
+    } on TimeoutException {
+      return const <String, dynamic>{};
+    }
+  }
 
   Future<void> logBattleResult({
     required String playerName,
@@ -28,6 +54,13 @@ class AnalyticsRepository {
   }) async {
     final uid = _uid;
     if (uid == null) return;
+    AchievementRepository.applyStatsDelta({
+      'totalBattles': 1,
+      if (mode == 'story') 'storyBattles': 1,
+      if (mode == 'infinite') 'infiniteBattles': 1,
+      if (victory) 'victoryCount': 1,
+      if (!victory) 'defeatCount': 1,
+    });
     final payload = <String, dynamic>{
       'uid': uid,
       'playerName': playerName,
@@ -58,6 +91,7 @@ class AnalyticsRepository {
       'updatedAt': FieldValue.serverTimestamp(),
       'lastBattle': payload,
     }, SetOptions(merge: true));
+    AchievementRepository.invalidateStatsCache();
   }
 
   Future<void> clearCurrentUserBattleHistory() async {

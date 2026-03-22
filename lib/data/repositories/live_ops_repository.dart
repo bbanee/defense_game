@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LiveOpsConfig {
@@ -44,7 +46,26 @@ class LiveOpsRepository {
   Future<LiveOpsConfig> loadConfig() async {
     final cached = _cache;
     if (cached != null) return cached;
-    final snap = await _firestore.collection('appConfig').doc('live').get();
+    final doc = _firestore.collection('appConfig').doc('live');
+    try {
+      final cachedSnap = await doc.get(const GetOptions(source: Source.cache));
+      final cachedData = cachedSnap.data();
+      if (cachedData != null) {
+        final config = LiveOpsConfig.fromJson(cachedData);
+        _cache = config;
+        return config;
+      }
+    } catch (_) {}
+    DocumentSnapshot<Map<String, dynamic>>? snap;
+    try {
+      snap = await doc.get().timeout(const Duration(seconds: 2));
+    } on TimeoutException {
+      snap = null;
+    }
+    if (snap == null) {
+      _cache = LiveOpsConfig.empty;
+      return LiveOpsConfig.empty;
+    }
     final data = snap.data();
     if (data == null) {
       _cache = LiveOpsConfig.empty;

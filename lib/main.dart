@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:tower_defense/data/repositories/account_progress_repository.dart';
 import 'package:tower_defense/domain/progress/account_progress.dart';
+import 'package:tower_defense/shared/ad_service.dart';
 import 'package:tower_defense/shared/audio_service.dart';
 import 'package:tower_defense/ui/screens/game_screen.dart';
 import 'package:tower_defense/ui/screens/lobby_screen.dart';
@@ -16,6 +17,7 @@ import 'package:tower_defense/ui/screens/nickname_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  unawaited(AppAdService.instance.initialize());
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);

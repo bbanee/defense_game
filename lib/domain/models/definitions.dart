@@ -418,6 +418,60 @@ class MapDef {
   }
 }
 
+class AchievementRewardDef {
+  final int accountGold;
+  final int diamonds;
+  final int shardDrawTickets;
+
+  const AchievementRewardDef({
+    required this.accountGold,
+    required this.diamonds,
+    required this.shardDrawTickets,
+  });
+
+  factory AchievementRewardDef.fromJson(Map<String, dynamic> json) {
+    return AchievementRewardDef(
+      accountGold: json['accountGold'] as int? ?? 0,
+      diamonds: json['diamonds'] as int? ?? 0,
+      shardDrawTickets: json['shardDrawTickets'] as int? ?? 0,
+    );
+  }
+}
+
+class AchievementDef {
+  final String id;
+  final String category;
+  final String title;
+  final String description;
+  final String statKey;
+  final int target;
+  final AchievementRewardDef reward;
+
+  const AchievementDef({
+    required this.id,
+    required this.category,
+    required this.title,
+    required this.description,
+    required this.statKey,
+    required this.target,
+    required this.reward,
+  });
+
+  factory AchievementDef.fromJson(Map<String, dynamic> json) {
+    return AchievementDef(
+      id: json['id'] as String,
+      category: (json['category'] as String?) ?? 'growth',
+      title: json['title'] as String,
+      description: json['description'] as String,
+      statKey: json['statKey'] as String,
+      target: json['target'] as int,
+      reward: AchievementRewardDef.fromJson(
+        json['reward'] as Map<String, dynamic>? ?? const {},
+      ),
+    );
+  }
+}
+
 class WaveSpawn {
   final String enemyId;
   final double at;

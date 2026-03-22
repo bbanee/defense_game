@@ -30,6 +30,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
   final AccountProgressRepository _progressRepo = AccountProgressRepository();
   final NicknameRepository _nicknameRepo = NicknameRepository();
   final TextEditingController _controller = TextEditingController();
+  AccountProgress? _loadedProgress;
   bool _submitting = false;
 
   @override
@@ -49,6 +50,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
   Future<void> _loadNickname() async {
     final progress = await _progressRepo.load();
     if (!mounted) return;
+    _loadedProgress = progress;
     final fallbackName =
         FirebaseAuth.instance.currentUser?.displayName?.trim() ?? '';
     _controller.text =
@@ -71,7 +73,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
     }
     if (_submitting) return;
     setState(() => _submitting = true);
-    final progress = await _progressRepo.load();
+    final progress = (_loadedProgress ?? await _progressRepo.load()).copy();
     final previousNickname = progress.nickname.trim();
     try {
       await _nicknameRepo.reserveNickname(
@@ -85,8 +87,9 @@ class _NicknameScreenState extends State<NicknameScreen> {
       return;
     }
     progress.nickname = nickname;
-    await _progressRepo.save(progress);
-    await FirebaseAuth.instance.currentUser?.updateDisplayName(nickname);
+    _loadedProgress = progress.copy();
+    _progressRepo.scheduleSave(progress, delay: Duration.zero);
+    unawaited(FirebaseAuth.instance.currentUser?.updateDisplayName(nickname));
     if (!mounted) return;
     await Navigator.of(context).pushReplacement(
       MaterialPageRoute(

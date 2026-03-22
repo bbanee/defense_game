@@ -11,6 +11,8 @@ class AccountProgressRepository {
   static final Map<String, AccountProgress> _cache = {};
   static final Map<String, AccountProgress> _pendingSaves = {};
   static final Map<String, Timer> _saveTimers = {};
+  static final Map<String, String> _lastSnapshotTrimByUid = {};
+  static StreamSubscription<User?>? _authSubscription;
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
 
@@ -18,7 +20,21 @@ class AccountProgressRepository {
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _auth = auth ?? FirebaseAuth.instance;
+        _auth = auth ?? FirebaseAuth.instance {
+    _authSubscription ??= FirebaseAuth.instance.authStateChanges().listen((user) {
+      // 로그아웃 또는 계정 전환 시 다른 UID의 타이머/캐시 정리
+      final currentUid = user?.uid;
+      final staleUids = _saveTimers.keys
+          .where((uid) => uid != currentUid)
+          .toList(growable: false);
+      for (final uid in staleUids) {
+        _saveTimers.remove(uid)?.cancel();
+        _pendingSaves.remove(uid);
+        _cache.remove(uid);
+        _lastSnapshotTrimByUid.remove(uid);
+      }
+    });
+  }
 
   String? get _uid => _auth.currentUser?.uid;
 
@@ -227,6 +243,8 @@ class AccountProgressRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
 
+    if (_lastSnapshotTrimByUid[uid] == snapshotId) return;
+    _lastSnapshotTrimByUid[uid] = snapshotId;
     final snapshot =
         await snapshots.orderBy('date', descending: true).get();
     if (snapshot.docs.length <= 30) return;

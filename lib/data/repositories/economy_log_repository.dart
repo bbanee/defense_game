@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:tower_defense/data/repositories/achievement_repository.dart';
 
 class EconomyLogRepository {
+  static final Map<String, DateTime> _lastTrimAt = {};
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
 
@@ -23,6 +25,28 @@ class EconomyLogRepository {
     final uid = _uid;
     if (uid == null) return;
     final isPremiumCurrency = currency == 'diamonds';
+    final delta = <String, int>{};
+    if (amount > 0 && currency == 'accountGold') {
+      delta['totalGoldEarned'] = amount;
+    }
+    if (amount < 0 && currency == 'accountGold') {
+      delta['totalGoldSpent'] = -amount;
+    }
+    if (amount > 0 && currency == 'diamonds') {
+      delta['totalDiamondsEarned'] = amount;
+    }
+    if (amount < 0 && currency == 'diamonds') {
+      delta['totalDiamondsSpent'] = -amount;
+    }
+    if (amount > 0 && currency == 'energy') {
+      delta['totalEnergyGained'] = amount;
+    }
+    if (amount > 0 && currency == 'shardDrawTickets') {
+      delta['totalTicketsGained'] = amount;
+    }
+    if (delta.isNotEmpty) {
+      AchievementRepository.applyStatsDelta(delta);
+    }
     final payload = <String, dynamic>{
       'uid': uid,
       'source': source,
@@ -73,6 +97,12 @@ class EconomyLogRepository {
   }) async {
     final uid = _uid;
     if (uid == null) return;
+    final delta = <String, int>{
+      'totalUpgrades': 1,
+      if (upgradeType.startsWith('tower_')) 'towerUpgradeCount': 1,
+      if (upgradeType.startsWith('core_')) 'coreUpgradeCount': 1,
+    };
+    AchievementRepository.applyStatsDelta(delta);
     await _firestore
         .collection('users')
         .doc(uid)
@@ -95,6 +125,14 @@ class EconomyLogRepository {
   }) async {
     final uid = _uid;
     if (uid == null) return;
+    final rawCount = metadata?['count'];
+    final drawCount = rawCount is int ? rawCount : int.tryParse('$rawCount') ?? 1;
+    final delta = <String, int>{
+      'totalShopActions': 1,
+      if (actionType == 'unlock_tower') 'towerPurchaseCount': 1,
+      if (actionType.contains('shard_draw')) 'shardDrawCount': drawCount,
+    };
+    AchievementRepository.applyStatsDelta(delta);
     await _firestore
         .collection('users')
         .doc(uid)
@@ -105,7 +143,7 @@ class EconomyLogRepository {
       if (actionType == 'unlock_tower')
         'towerPurchaseCount': FieldValue.increment(1),
       if (actionType.contains('shard_draw'))
-        'shardDrawCount': FieldValue.increment(1),
+        'shardDrawCount': FieldValue.increment(drawCount),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
@@ -143,6 +181,7 @@ class EconomyLogRepository {
   }) async {
     final uid = _uid;
     if (uid == null) return;
+    AchievementRepository.applyStatsDelta({'totalAdsRewarded': 1});
     await _firestore
         .collection('users')
         .doc(uid)
@@ -158,6 +197,13 @@ class EconomyLogRepository {
     CollectionReference<Map<String, dynamic>> collection, {
     required int keep,
   }) async {
+    final trimKey = collection.path;
+    final now = DateTime.now();
+    final lastTrim = _lastTrimAt[trimKey];
+    if (lastTrim != null && now.difference(lastTrim) < const Duration(minutes: 2)) {
+      return;
+    }
+    _lastTrimAt[trimKey] = now;
     final snapshot =
         await collection.orderBy('createdAt', descending: true).get();
     if (snapshot.docs.length <= keep) return;

@@ -1,7 +1,7 @@
 ﻿{
   "nickname": "",
-  "accountGold": 0,
-  "diamonds": 1000,
+  "accountGold": 10000,
+  "diamonds": 1500,
   "energy": 30,
   "maxEnergy": 30,
   "lastEnergyAtIso": "",
@@ -14,6 +14,7 @@
   "adDailyDate": "",
   "adPointResetDailyCount": 0,
   "adShardDrawTenDailyCount": 0,
+  "claimedAchievementIds": [],
   "core": {
     "level": 1,
     "hp": 2600,

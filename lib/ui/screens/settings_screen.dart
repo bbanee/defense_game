@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:tower_defense/data/repositories/account_progress_repository.dart';
-import 'package:tower_defense/data/repositories/analytics_repository.dart';
 import 'package:tower_defense/data/repositories/nickname_repository.dart';
 import 'package:tower_defense/data/repositories/ranking_repository.dart';
 import 'package:tower_defense/domain/progress/account_progress.dart';
@@ -35,7 +34,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final SettingsRepository repo = SettingsRepository();
   final AccountProgressRepository progressRepo = AccountProgressRepository();
   final RankingRepository rankingRepo = RankingRepository();
-  final AnalyticsRepository analyticsRepo = AnalyticsRepository();
   final NicknameRepository nicknameRepo = NicknameRepository();
   late AccountProgress progress;
   bool _isExiting = false;
@@ -87,16 +85,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void dispose() {
     unawaited(AppAudioService.instance.stopAllSfx());
     super.dispose();
-  }
-
-  Future<void> _resetAllRemoteData() async {
-    await progressRepo.resetCurrentUserData();
-    await repo.resetCurrentUserSettings();
-    await rankingRepo.deleteCurrentUserEntries();
-    await analyticsRepo.clearCurrentUserBattleHistory();
-    final fresh = await progressRepo.load();
-    if (!mounted) return;
-    Navigator.of(context).pop(fresh);
   }
 
   Future<void> _logout() async {
@@ -342,36 +330,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _grantAllTowerShards(int amount) async {
-    for (final tower in progress.towers.values) {
-      tower.shards += amount;
-    }
-    await progressRepo.save(progress);
-    if (!mounted) return;
-    setState(() {});
-  }
-
-  Future<void> _addGold(int amount) async {
-    setState(() {
-      progress.accountGold += amount;
-    });
-    await progressRepo.save(progress);
-  }
-
-  Future<void> _addTickets(int amount) async {
-    setState(() {
-      progress.shardDrawTickets += amount;
-    });
-    await progressRepo.save(progress);
-  }
-
-  Future<void> _addDiamonds(int amount) async {
-    setState(() {
-      progress.diamonds += amount;
-    });
-    await progressRepo.save(progress);
-  }
-
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -446,8 +404,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       await _save();
                     },
                   ),
-                  const SizedBox(height: 12),
-                  _debugActions(),
                   const SizedBox(height: 12),
                   AppPanelButton(
                     label: '로그아웃',
@@ -546,100 +502,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _debugActions() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xCC142238),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF83B5FF), width: 1.2),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: AppPanelButton(
-                  label: '초기화',
-                  borderColor: const Color(0xFF83B5FF),
-                  foregroundColor: const Color(0xFFF3F7FF),
-                  backgroundColor: const Color(0x99122336),
-                  compact: true,
-                  onPressed: () async {
-                    final ok = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('데이터 초기화'),
-                        content:
-                            const Text('현재 계정의 진행도, 설정, 랭킹 기록을 모두 초기화합니다.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: const Text('취소'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: const Text('초기화'),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (ok == true) {
-                      await _resetAllRemoteData();
-                    }
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: AppPanelButton(
-                  label: '조각+100',
-                  borderColor: const Color(0xFF83B5FF),
-                  foregroundColor: const Color(0xFFF3F7FF),
-                  backgroundColor: const Color(0xCC17304B),
-                  compact: true,
-                  onPressed: () => _grantAllTowerShards(100),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: AppPanelButton(
-                  label: '골드+500',
-                  borderColor: const Color(0xFF83B5FF),
-                  foregroundColor: const Color(0xFFF3F7FF),
-                  backgroundColor: const Color(0xCC17304B),
-                  compact: true,
-                  onPressed: () => _addGold(500),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: AppPanelButton(
-                  label: '티켓+100',
-                  borderColor: const Color(0xFF83B5FF),
-                  foregroundColor: const Color(0xFFF3F7FF),
-                  backgroundColor: const Color(0xCC17304B),
-                  compact: true,
-                  onPressed: () => _addTickets(100),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          AppPanelButton(
-            label: '다이아+1000',
-            borderColor: const Color(0xFF83B5FF),
-            foregroundColor: const Color(0xFFF3F7FF),
-            backgroundColor: const Color(0xCC17304B),
-            compact: true,
-            onPressed: () => _addDiamonds(1000),
-          ),
-        ],
-      ),
-    );
-  }
 }

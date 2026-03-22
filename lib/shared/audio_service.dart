@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:audioplayers/audioplayers.dart';
@@ -7,7 +8,7 @@ import 'package:tower_defense/data/repositories/settings_repository.dart';
 enum AudioBgmTrack {
   login('audio/bgm/login_theme.mp3', 0.34),
   lobby('audio/bgm/lobby_theme.mp3', 0.36),
-  battle('audio/bgm/battle_theme.mp3', 0.32);
+  battle('audio/bgm/battle_theme.mp3', 0.24);
 
   const AudioBgmTrack(this.assetPath, this.volume);
 
@@ -22,13 +23,20 @@ class AppAudioService {
 
   final SettingsRepository _settingsRepo = SettingsRepository();
   final AudioPlayer _bgmPlayer = AudioPlayer();
+  final AudioPlayer _jinglePlayer = AudioPlayer();
   final Map<String, DateTime> _throttleMap = {};
-  final Set<AudioPlayer> _activeSfxPlayers = <AudioPlayer>{};
+  final Queue<AudioPlayer> _activeSfxPlayers = Queue<AudioPlayer>();
+  DateTime _lastThrottleCleanup = DateTime.fromMillisecondsSinceEpoch(0);
+
+  // Android 동시 오디오 플레이어 한계(~32)를 고려한 상한
+  // 궁극기·시스템음은 이 제한을 받지 않도록 _playSfx에서 파라미터로 제어
+  static const int _maxConcurrentSfxPlayers = 20;
 
   bool _initialized = false;
   bool _musicOn = true;
   bool _sfxOn = true;
   String? _currentBgmPath;
+  int _bgmRequestVersion = 0;
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -41,6 +49,8 @@ class AppAudioService {
     );
     await _bgmPlayer.setReleaseMode(ReleaseMode.loop);
     await _bgmPlayer.setPlayerMode(PlayerMode.mediaPlayer);
+    await _jinglePlayer.setReleaseMode(ReleaseMode.stop);
+    await _jinglePlayer.setPlayerMode(PlayerMode.mediaPlayer);
   }
 
   Future<void> syncSettings() async {
@@ -57,8 +67,11 @@ class AppAudioService {
   }
 
   Future<void> playBgm(AudioBgmTrack track) async {
+    final requestVersion = ++_bgmRequestVersion;
     await initialize();
+    if (requestVersion != _bgmRequestVersion) return;
     await syncSettings();
+    if (requestVersion != _bgmRequestVersion) return;
     if (!_musicOn) return;
     if (_currentBgmPath == track.assetPath &&
         _bgmPlayer.state == PlayerState.playing) {
@@ -67,11 +80,15 @@ class AppAudioService {
     }
     _currentBgmPath = track.assetPath;
     await _bgmPlayer.stop();
+    if (requestVersion != _bgmRequestVersion) return;
     await _bgmPlayer.setVolume(track.volume);
+    if (requestVersion != _bgmRequestVersion) return;
     await _bgmPlayer.play(AssetSource(track.assetPath));
   }
 
   Future<void> stopBgm() async {
+    _bgmRequestVersion++;
+    _currentBgmPath = null;
     await initialize();
     await _bgmPlayer.stop();
   }
@@ -155,17 +172,26 @@ class AppAudioService {
         minGap: const Duration(milliseconds: 150),
       );
 
-  Future<void> playVictoryJingle() => _playSfx(
-        'audio/bgm/result_victory.mp3',
-        volume: 0.74,
-        minGap: const Duration(milliseconds: 400),
-      );
+  Future<void> playVictoryJingle() =>
+      _playJingle('audio/bgm/result_victory.mp3', volume: 0.74);
 
-  Future<void> playDefeatJingle() => _playSfx(
-        'audio/bgm/result_defeat.mp3',
-        volume: 0.72,
-        minGap: const Duration(milliseconds: 400),
-      );
+  Future<void> playDefeatJingle() =>
+      _playJingle('audio/bgm/result_defeat.mp3', volume: 0.72);
+
+  /// BGM/SFX를 먼저 정지한 뒤 _jinglePlayer로 징글을 재생한다.
+  /// _activeSfxPlayers에 등록하지 않으므로 stopAllSfx()에 의해 kill되지 않는다.
+  Future<void> _playJingle(String assetPath, {required double volume}) async {
+    await initialize();
+    // BGM과 SFX를 먼저 멈추고 나서 징글 시작 (순서 보장)
+    await stopBgm();
+    await stopAllSfx();
+    if (!_sfxOn) return;
+    try {
+      await _jinglePlayer.stop();
+      await _jinglePlayer.setVolume(volume);
+      await _jinglePlayer.play(AssetSource(assetPath));
+    } catch (_) {}
+  }
 
   Future<void> playTowerAttack(
     String towerId, {
@@ -184,11 +210,16 @@ class AppAudioService {
     final volume = isUltimate
         ? _ultimateVolumeForTower(towerId)
         : _basicVolumeForTower(towerId, attackIntervalSec);
+    final maxDuration = _towerMaxDurationForSfx(
+      towerId,
+      isUltimate: isUltimate,
+    );
     return _playSfx(
       assetPath,
       volume: volume,
       throttleKey: throttleKey,
       minGap: minGap,
+      maxDuration: maxDuration,
     );
   }
 
@@ -202,19 +233,19 @@ class AppAudioService {
 
   double _basicVolumeForTower(String towerId, double attackIntervalSec) {
     final base = switch (towerId) {
-      'rapid_basic' => 0.12,
-      'support_basic' => 0.10,
-      'chain_basic' => 0.16,
-      'laser_basic' => 0.14,
-      'drone_basic' => 0.12,
-      'gravity_basic' => 0.15,
-      'infection_basic' => 0.14,
-      'sniper_basic' => 0.22,
-      'shotgun_basic' => 0.24,
-      'missile_basic' => 0.22,
-      'mortar_basic' => 0.24,
-      'singularity_basic' => 0.24,
-      _ => 0.18,
+      'rapid_basic' => 0.15,
+      'support_basic' => 0.13,
+      'chain_basic' => 0.19,
+      'laser_basic' => 0.17,
+      'drone_basic' => 0.15,
+      'gravity_basic' => 0.18,
+      'infection_basic' => 0.17,
+      'sniper_basic' => 0.25,
+      'shotgun_basic' => 0.27,
+      'missile_basic' => 0.25,
+      'mortar_basic' => 0.27,
+      'singularity_basic' => 0.27,
+      _ => 0.21,
     };
     final speedComp = attackIntervalSec <= 0
         ? 1.0
@@ -237,6 +268,26 @@ class AppAudioService {
     };
   }
 
+  Duration? _towerMaxDurationForSfx(
+    String towerId, {
+    required bool isUltimate,
+  }) {
+    return switch ((towerId, isUltimate)) {
+      ('drone_basic', false) => const Duration(milliseconds: 180),
+      ('drone_basic', true) => const Duration(milliseconds: 280),
+      ('frost_basic', false) => const Duration(milliseconds: 190),
+      ('frost_basic', true) => const Duration(milliseconds: 340),
+      ('gravity_basic', false) => const Duration(milliseconds: 180),
+      ('gravity_basic', true) => const Duration(milliseconds: 320),
+      ('infection_basic', false) => const Duration(milliseconds: 170),
+      ('infection_basic', true) => const Duration(milliseconds: 300),
+      ('laser_basic', false) => const Duration(milliseconds: 160),
+      ('laser_basic', true) => const Duration(milliseconds: 240),
+      ('singularity_basic', true) => const Duration(milliseconds: 360),
+      _ => null,
+    };
+  }
+
   Future<void> _playSfx(
     String assetPath, {
     required double volume,
@@ -256,16 +307,32 @@ class AppAudioService {
     }
     _throttleMap[key] = now;
 
+    // 30초마다 5초 이상 지난 throttleMap 항목 제거 (배틀 중 누적 방지)
+    if (now.difference(_lastThrottleCleanup).inSeconds >= 30) {
+      _lastThrottleCleanup = now;
+      _throttleMap.removeWhere(
+        (_, t) => now.difference(t).inSeconds >= 5,
+      );
+    }
+
+    // 동시 플레이어 상한 초과 시 가장 오래된 것을 종료하고 새 소리 재생
+    if (_activeSfxPlayers.length >= _maxConcurrentSfxPlayers) {
+      final oldest = _activeSfxPlayers.removeFirst();
+      unawaited(
+        oldest.stop().then((_) => oldest.dispose()).catchError((_) {}),
+      );
+    }
+
     final player = AudioPlayer();
     try {
-      _activeSfxPlayers.add(player);
+      _activeSfxPlayers.addLast(player);
       await player.setPlayerMode(PlayerMode.lowLatency);
       await player.setReleaseMode(ReleaseMode.stop);
       await player.setVolume(volume);
       await player.play(AssetSource(assetPath));
       unawaited(_disposeLater(player, maxDuration: maxDuration));
     } catch (_) {
-      _activeSfxPlayers.remove(player);
+      _activeSfxPlayers.remove(player); // Queue.remove() is O(n), fine for ≤20
       unawaited(player.dispose());
     }
   }
@@ -286,7 +353,12 @@ class AppAudioService {
         await player.onPlayerComplete.first.timeout(const Duration(seconds: 4));
       }
     } catch (_) {}
-    _activeSfxPlayers.remove(player);
-    await player.dispose();
+    final shouldDispose = _activeSfxPlayers.remove(player);
+    if (!shouldDispose) {
+      return;
+    }
+    try {
+      await player.dispose();
+    } catch (_) {}
   }
 }

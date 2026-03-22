@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -63,26 +65,47 @@ class SettingsRepository {
     if (cached != null) {
       return cached;
     }
-    final snap = await _settingsDoc(uid).get();
-    if (!snap.exists) {
+    try {
+      final cachedSnap =
+          await _settingsDoc(uid).get(const GetOptions(source: Source.cache));
+      final cachedData = cachedSnap.data()?['data'];
+      final cachedParsed = _parseSettings(cachedData);
+      if (cachedParsed != null) {
+        _cache[uid] = cachedParsed;
+        return cachedParsed;
+      }
+    } catch (_) {}
+
+    DocumentSnapshot<Map<String, dynamic>>? snap;
+    try {
+      snap = await _settingsDoc(uid).get().timeout(const Duration(seconds: 2));
+    } on TimeoutException {
+      snap = null;
+    }
+    if (snap == null || !snap.exists) {
       const fallback = SettingsData(musicOn: true, sfxOn: true, showDamage: true);
       _cache[uid] = fallback;
       return fallback;
     }
     final data = snap.data()?['data'];
-    if (data is Map<String, dynamic>) {
-      final parsed = SettingsData.fromJson(data);
-      _cache[uid] = parsed;
-      return parsed;
-    }
-    if (data is Map) {
-      final parsed = SettingsData.fromJson(Map<String, dynamic>.from(data));
+    final parsed = _parseSettings(data);
+    if (parsed != null) {
       _cache[uid] = parsed;
       return parsed;
     }
     const fallback = SettingsData(musicOn: true, sfxOn: true, showDamage: true);
     _cache[uid] = fallback;
     return fallback;
+  }
+
+  SettingsData? _parseSettings(Object? data) {
+    if (data is Map<String, dynamic>) {
+      return SettingsData.fromJson(data);
+    }
+    if (data is Map) {
+      return SettingsData.fromJson(Map<String, dynamic>.from(data));
+    }
+    return null;
   }
 
   Future<void> save(SettingsData data) async {

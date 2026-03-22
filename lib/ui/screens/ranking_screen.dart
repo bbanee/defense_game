@@ -14,17 +14,44 @@ class RankingScreen extends StatefulWidget {
 
 class _RankingScreenState extends State<RankingScreen> {
   int _tabIndex = 0;
+  final RankingRepository _repo = RankingRepository();
+  List<RankingEntry> _stageList = const [];
+  List<RankingEntry> _infiniteList = const [];
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
     unawaited(AppAudioService.instance.playBgm(AudioBgmTrack.lobby));
+    _stageList = _repo.loadStageCached();
+    _infiniteList = _repo.loadInfiniteCached();
+    _loading = _stageList.isEmpty && _infiniteList.isEmpty;
+    unawaited(_refreshRankings());
   }
 
   @override
   void dispose() {
     unawaited(AppAudioService.instance.stopAllSfx());
     super.dispose();
+  }
+
+  Future<void> _refreshRankings() async {
+    unawaited(() async {
+      final stage = await _repo.refreshStage();
+      if (!mounted) return;
+      setState(() {
+        _stageList = stage;
+        _loading = false;
+      });
+    }());
+    unawaited(() async {
+      final infinite = await _repo.refreshInfinite();
+      if (!mounted) return;
+      setState(() {
+        _infiniteList = infinite;
+        _loading = false;
+      });
+    }());
   }
 
   @override
@@ -45,17 +72,8 @@ class _RankingScreenState extends State<RankingScreen> {
             colors: [Color(0xFF091321), Color(0xFF13233B)],
           ),
         ),
-        child: FutureBuilder<({List<RankingEntry> stage, List<RankingEntry> infinite})>(
-          future: () async {
-            final repo = RankingRepository();
-            final stage = await repo.loadStage();
-            final infinite = await repo.loadInfinite();
-            return (stage: stage, infinite: infinite);
-          }(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting &&
-                !snapshot.hasData) {
-              return const Center(
+        child: _loading && _stageList.isEmpty && _infiniteList.isEmpty
+            ? const Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -71,11 +89,8 @@ class _RankingScreenState extends State<RankingScreen> {
                     ),
                   ],
                 ),
-              );
-            }
-            final stageList = snapshot.data?.stage ?? const [];
-            final infiniteList = snapshot.data?.infinite ?? const [];
-            return ListView(
+              )
+            : ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 _rankingTabs(),
@@ -90,10 +105,10 @@ class _RankingScreenState extends State<RankingScreen> {
                 ),
                 const SizedBox(height: 8),
                 if (_tabIndex == 0) ...[
-                  if (stageList.isEmpty)
+                  if (_stageList.isEmpty)
                     const Text('기록 없음', style: TextStyle(color: Color(0xFFD9E7FF)))
                   else
-                    ...stageList.asMap().entries.map((e) {
+                    ..._stageList.asMap().entries.map((e) {
                       final index = e.key + 1;
                       final item = e.value;
                       return _rankRow(
@@ -107,10 +122,10 @@ class _RankingScreenState extends State<RankingScreen> {
                       );
                     }).toList(),
                 ] else ...[
-                  if (infiniteList.isEmpty)
+                  if (_infiniteList.isEmpty)
                     const Text('기록 없음', style: TextStyle(color: Color(0xFFD9E7FF)))
                   else
-                    ...infiniteList.asMap().entries.map((e) {
+                    ..._infiniteList.asMap().entries.map((e) {
                       final index = e.key + 1;
                       final item = e.value;
                       return _rankRow(
@@ -125,9 +140,7 @@ class _RankingScreenState extends State<RankingScreen> {
                     }).toList(),
                 ],
               ],
-            );
-          },
-        ),
+            ),
       ),
     );
   }

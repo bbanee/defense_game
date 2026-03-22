@@ -3,6 +3,12 @@
 class DamageText extends TextComponent {
   final double lifeTime;
   double life = 0;
+  // 불투명도를 16단계로 양자화해 TextPaint 재생성 횟수를 최소화
+  int _lastOpacityStep = -1;
+
+  static const _shadowList = [
+    Shadow(color: Color(0xFF3B82F6), blurRadius: 2),
+  ];
 
   DamageText({
     required String text,
@@ -18,6 +24,7 @@ class DamageText extends TextComponent {
               color: Color(0xFFFFFFFF),
               fontSize: 18,
               fontWeight: FontWeight.w700,
+              shadows: _shadowList,
             ),
           ),
         );
@@ -26,20 +33,25 @@ class DamageText extends TextComponent {
   void update(double dt) {
     super.update(dt);
     life += dt;
-    position += Vector2(0, -18 * dt);
-    final t = (1.0 - life / lifeTime).clamp(0.0, 1.0);
-    textRenderer = TextPaint(
-      style: TextStyle(
-        color: const Color(0xFFFFFFFF).withOpacity(t),
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
-        shadows: [
-          Shadow(color: Color(0xFF3B82F6), blurRadius: 2, offset: Offset(0, 0)),
-        ],
-      ),
-    );
     if (life >= lifeTime) {
       removeFromParent();
+      return;
+    }
+    position += Vector2(0, -18 * dt);
+    final t = (1.0 - life / lifeTime).clamp(0.0, 1.0);
+    // 16단계 양자화: ~36회 생성 → 최대 16회 생성
+    final step = (t * 16).round();
+    if (step != _lastOpacityStep) {
+      _lastOpacityStep = step;
+      final alpha = (step * 255 / 16).round();
+      textRenderer = TextPaint(
+        style: TextStyle(
+          color: Color.fromARGB(alpha, 255, 255, 255),
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          shadows: _shadowList, // const 재사용
+        ),
+      );
     }
   }
 }
@@ -447,6 +459,12 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyAnim> {
 
 
   @override
+  // HP 바 Paint 캐시 — 색상은 3단계만 존재하므로 static으로 공유
+  static final Paint _hpBgPaint = Paint()..color = const Color(0xFF2B2B2B);
+  static final Paint _hpFgPaintGreen = Paint()..color = const Color(0xFF8BC34A);
+  static final Paint _hpFgPaintYellow = Paint()..color = const Color(0xFFFFC107);
+  static final Paint _hpFgPaintRed = Paint()..color = const Color(0xFFE53935);
+
   void render(Canvas canvas) {
     if (attackNudge > 0) {
       final t = (attackNudge / _attackNudgeDuration).clamp(0.0, 1.0);
@@ -460,14 +478,13 @@ class Enemy extends SpriteAnimationGroupComponent<EnemyAnim> {
     }
 
     final hpWidth = size.x * 0.7;
-    final hpHeight = 3.0;
+    const hpHeight = 3.0;
     final hpRatio = maxHp <= 0 ? 0.0 : (hp / maxHp).clamp(0.0, 1.0);
 
-    final bgPaint = Paint()..color = const Color(0xFF2B2B2B);
-    final fgColor = hpRatio <= 0.2
-        ? const Color(0xFFE53935)
-        : (hpRatio <= 0.5 ? const Color(0xFFFFC107) : const Color(0xFF8BC34A));
-    final fgPaint = Paint()..color = fgColor;
+    final bgPaint = _hpBgPaint;
+    final fgPaint = hpRatio <= 0.2
+        ? _hpFgPaintRed
+        : (hpRatio <= 0.5 ? _hpFgPaintYellow : _hpFgPaintGreen);
 
     final baseOffset = Vector2(size.x * 0.46, 0);
     final offset = baseOffset + _hpBarOffset();
@@ -506,6 +523,7 @@ class Projectile extends PositionComponent {
   final String towerId;
   final bool isUltimate;
 
+  late final Paint _paint;
   late final Vector2 direction;
 
   Projectile({
@@ -524,6 +542,7 @@ class Projectile extends PositionComponent {
     size = Vector2(sizePx, sizePx);
     anchor = Anchor.center;
     direction = (targetPos - origin).normalized();
+    _paint = Paint()..color = color ?? const Color(0xFFFFD54F);
   }
 
   @override
@@ -552,8 +571,7 @@ class Projectile extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    final paint = Paint()..color = color ?? const Color(0xFFFFD54F);
-    canvas.drawCircle(Offset.zero, size.x * 0.5, paint);
+    canvas.drawCircle(Offset.zero, size.x * 0.5, _paint);
   }
 }
 
@@ -563,6 +581,8 @@ class HitscanEffect extends PositionComponent {
   double life;
   final Color? color;
   final double strokeWidth;
+  // 렌더링용 Paint 캐시 — 인스턴스 당 1회만 생성
+  late final Paint _paint;
 
   HitscanEffect({
     required this.start,
@@ -572,6 +592,10 @@ class HitscanEffect extends PositionComponent {
     double life = 0.08,
   }) : life = life {
     priority = 900;
+    _paint = Paint()
+      ..color = color ?? const Color(0xFFFF8F00)
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
   }
 
   @override
@@ -585,11 +609,7 @@ class HitscanEffect extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    final paint = Paint()
-      ..color = color ?? const Color(0xFFFF8F00)
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(Offset(start.x, start.y), Offset(end.x, end.y), paint);
+    canvas.drawLine(Offset(start.x, start.y), Offset(end.x, end.y), _paint);
   }
 }
 
