@@ -4,8 +4,8 @@
   "hpMultiplier": 1.82,
   "speedMultiplier": 1.11,
   "rewardMultiplier": 0.8,
-  "startingBattleGold": 330,
+  "startingBattleGold": 500,
   "buildCostMultiplier": 1.62,
   "towerUpgradeCostMultiplier": 2.05,
-  "sellRefundMultiplier": 0.4
+  "sellRefundMultiplier": 0.55
 }

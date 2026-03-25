@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:tower_defense/domain/progress/account_progress.dart';
 
@@ -81,7 +82,7 @@ class AccountProgressRepository {
     try {
       progressSnap =
           await _progressDoc(uid).get().timeout(const Duration(seconds: 3));
-    } on TimeoutException {
+    } catch (_) {
       progressSnap = null;
     }
     if (progressSnap == null) {
@@ -173,7 +174,11 @@ class AccountProgressRepository {
       },
       SetOptions(merge: true),
     );
-    await batch.commit();
+    try {
+      await batch.commit();
+    } catch (e) {
+      debugPrint('[ProgressRepo] 저장 실패 (네트워크 오류 등): $e');
+    }
     unawaited(_saveDailySnapshot(uid, progress));
   }
 

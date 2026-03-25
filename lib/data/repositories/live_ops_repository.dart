@@ -59,7 +59,7 @@ class LiveOpsRepository {
     DocumentSnapshot<Map<String, dynamic>>? snap;
     try {
       snap = await doc.get().timeout(const Duration(seconds: 2));
-    } on TimeoutException {
+    } catch (_) {
       snap = null;
     }
     if (snap == null) {

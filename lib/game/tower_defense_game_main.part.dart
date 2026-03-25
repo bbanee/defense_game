@@ -77,6 +77,7 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
   bool endRewardsDoubled = false;
   int endRewardGold = 0;
   int endRewardTickets = 0;
+  int endRewardDiamonds = 0;
   bool stageRankingSaved = false;
   int enemyKillScore = 0;
   int highestPlacedTowerCount = 0;
@@ -853,10 +854,12 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     }
   }
 
-  ({int gold, int tickets}) _calculateEndRewards() {
-    final reached = (currentWaveIndex + 1).clamp(0, waves.length);
+  ({int gold, int tickets, int diamonds}) _calculateEndRewards() {
+    final reached = isInfiniteMode
+        ? displayedWaveNumber
+        : (currentWaveIndex + 1).clamp(0, waves.length);
     if (reached <= 0) {
-      return (gold: 0, tickets: 0);
+      return (gold: 0, tickets: 0, diamonds: 0);
     }
 
     final goldPerWave = switch (difficultyId) {
@@ -864,6 +867,7 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
       'normal' => 260,
       'hard' => 380,
       'nightmare' => 520,
+      'endless' => 220,
       _ => 180,
     };
     final goldReward = reached * goldPerWave;
@@ -889,7 +893,15 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
       }
     }
 
-    return (gold: goldReward, tickets: tickets);
+    // 다이아 보상: Hard/Nightmare/Endless에서 웨이브 진행에 비례 지급
+    // Hard 웨이브 50 풀클 시 25 다이아, Endless 웨이브 50 시 20 다이아
+    final diamonds = switch (difficultyId) {
+      'hard' || 'nightmare' => (reached / 2).ceil(),
+      'endless' => (reached / 2.5).ceil(),
+      _ => 0,
+    };
+
+    return (gold: goldReward, tickets: tickets, diamonds: diamonds);
   }
 
   int _killScoreForEnemy(EnemyDef def) {
@@ -949,10 +961,12 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
   }
 
   Future<void> _grantEndRewardsInternal() async {
-    if (isInfiniteMode || endRewardsGranted || stageDef.id == 'test_u_stage') {
+    if (endRewardsGranted || stageDef.id == 'test_u_stage') {
       return;
     }
-    final reached = (currentWaveIndex + 1).clamp(0, waves.length);
+    final reached = isInfiniteMode
+        ? displayedWaveNumber
+        : (currentWaveIndex + 1).clamp(0, waves.length);
     final currentBest = accountProgress.bestWaveByDifficulty[difficultyId] ?? 0;
     if (reached > currentBest) {
       accountProgress.bestWaveByDifficulty[difficultyId] = reached;
@@ -961,7 +975,8 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     final rewards = _calculateEndRewards();
     endRewardGold = rewards.gold;
     endRewardTickets = rewards.tickets;
-    if (rewards.gold <= 0 && rewards.tickets <= 0) {
+    endRewardDiamonds = rewards.diamonds;
+    if (rewards.gold <= 0 && rewards.tickets <= 0 && rewards.diamonds <= 0) {
       endRewardsGranted = true;
       return;
     }
@@ -970,6 +985,9 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     accountGold += rewards.gold;
     if (rewards.tickets > 0) {
       accountProgress.shardDrawTickets += rewards.tickets;
+    }
+    if (rewards.diamonds > 0) {
+      accountProgress.diamonds += rewards.diamonds;
     }
 
     if (rewards.gold > 0) {
@@ -991,6 +1009,19 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
         currency: 'shardDrawTickets',
         amount: rewards.tickets,
         balanceAfter: accountProgress.shardDrawTickets,
+        metadata: {
+          'stageId': stageDef.id,
+          'difficultyId': difficultyId,
+          'reachedWave': reached,
+        },
+      ));
+    }
+    if (rewards.diamonds > 0) {
+      unawaited(EconomyLogRepository().logCurrencyChange(
+        source: 'battle_end_reward',
+        currency: 'diamonds',
+        amount: rewards.diamonds,
+        balanceAfter: accountProgress.diamonds,
         metadata: {
           'stageId': stageDef.id,
           'difficultyId': difficultyId,
@@ -1057,7 +1088,7 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
       return;
     }
     endRewardsDoubled = true;
-    if (endRewardGold <= 0 && endRewardTickets <= 0) {
+    if (endRewardGold <= 0 && endRewardTickets <= 0 && endRewardDiamonds <= 0) {
       return;
     }
 
@@ -1065,6 +1096,9 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
     accountGold += endRewardGold;
     if (endRewardTickets > 0) {
       accountProgress.shardDrawTickets += endRewardTickets;
+    }
+    if (endRewardDiamonds > 0) {
+      accountProgress.diamonds += endRewardDiamonds;
     }
     if (endRewardGold > 0) {
       unawaited(EconomyLogRepository().logCurrencyChange(
@@ -1085,6 +1119,19 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
         currency: 'shardDrawTickets',
         amount: endRewardTickets,
         balanceAfter: accountProgress.shardDrawTickets,
+        metadata: {
+          'stageId': stageDef.id,
+          'difficultyId': difficultyId,
+          'reachedWave': (currentWaveIndex + 1).clamp(0, waves.length),
+        },
+      ));
+    }
+    if (endRewardDiamonds > 0) {
+      unawaited(EconomyLogRepository().logCurrencyChange(
+        source: 'battle_end_reward_double',
+        currency: 'diamonds',
+        amount: endRewardDiamonds,
+        balanceAfter: accountProgress.diamonds,
         metadata: {
           'stageId': stageDef.id,
           'difficultyId': difficultyId,
@@ -1144,6 +1191,7 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
         : (currentWaveIndex + 1).clamp(0, waves.length);
     try {
       if (isInfiniteMode) {
+        await _grantEndRewardsIfNeeded();
         await _saveInfiniteScoreIfNeeded();
         unawaited(AnalyticsRepository().logBattleResult(
           playerName: rankingPlayerName,
@@ -1152,8 +1200,8 @@ class TowerDefenseGame extends FlameGame with TapCallbacks {
           stageId: stageDef.id,
           reachedWave: reachedWave,
           victory: false,
-          accountGoldReward: 0,
-          ticketReward: 0,
+          accountGoldReward: endRewardGold,
+          ticketReward: endRewardTickets,
           infiniteScore: finalInfiniteScore,
           highestPlacedTowerCount: highestPlacedTowerCount,
           usedContinue: continueUsed,

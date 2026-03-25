@@ -13,7 +13,7 @@
     "upgradeCostBase":  100,
     "upgradeCostMultiplier":  0.6,
     "sellRefundRate":  0.75,
-    "unlockShards":  15,
+    "unlockShards":  25,
     "levelUpShardsBase":  18,
     "levelUpShardsMultiplier":  1.35,
     "ultimateChance":  0.11,

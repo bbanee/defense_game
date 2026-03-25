@@ -8,6 +8,7 @@ import 'package:tower_defense/domain/models/definitions.dart';
 import 'package:tower_defense/domain/progress/account_progress.dart';
 import 'package:tower_defense/shared/ad_service.dart';
 import 'package:tower_defense/shared/audio_service.dart';
+import 'package:tower_defense/shared/iap_service.dart';
 import 'package:tower_defense/shared/tower_visual_fx.dart';
 import 'package:tower_defense/ui/widgets/panel_button.dart';
 
@@ -69,6 +70,7 @@ class _ShopScreenState extends State<ShopScreen> {
   int _tabIndex = 1;
   bool _isExiting = false;
   bool _isDrawing = false;
+  StreamSubscription<int>? _iapSub;
 
   @override
   void initState() {
@@ -77,6 +79,14 @@ class _ShopScreenState extends State<ShopScreen> {
     progress = widget.progress;
     _ensureStarterTowers();
     _loadData();
+    _iapSub = IapService.instance.onDiamondsGranted.listen((amount) {
+      if (!mounted) return;
+      setState(() => progress.diamonds += amount);
+      unawaited(_showNoticeDialog(
+        title: '구매 완료',
+        body: '다이아 +${_fmtInt(amount)}개가 지급되었습니다.',
+      ));
+    });
   }
 
   void _ensureStarterTowers() {
@@ -111,6 +121,7 @@ class _ShopScreenState extends State<ShopScreen> {
 
   @override
   void dispose() {
+    _iapSub?.cancel();
     unawaited(AppAudioService.instance.stopAllSfx());
     super.dispose();
   }
@@ -937,30 +948,34 @@ class _ShopScreenState extends State<ShopScreen> {
       children: [
         _diamondShopPackageCard(
           panelBorder: panelBorder,
+          productId: 'diamonds_1200',
           title: '다이아 팩 S',
           diamondAmount: 1200,
-          cashLabel: '₩1,200',
+          fallbackPrice: '₩1,200',
         ),
         const SizedBox(height: 10),
         _diamondShopPackageCard(
           panelBorder: panelBorder,
+          productId: 'diamonds_3500',
           title: '다이아 팩 M',
           diamondAmount: 3500,
-          cashLabel: '₩3,300',
+          fallbackPrice: '₩3,300',
         ),
         const SizedBox(height: 10),
         _diamondShopPackageCard(
           panelBorder: panelBorder,
+          productId: 'diamonds_8000',
           title: '다이아 팩 L',
           diamondAmount: 8000,
-          cashLabel: '₩7,500',
+          fallbackPrice: '₩7,500',
         ),
         const SizedBox(height: 10),
         _diamondShopPackageCard(
           panelBorder: panelBorder,
+          productId: 'diamonds_18000',
           title: '다이아 팩 XL',
           diamondAmount: 18000,
-          cashLabel: '₩15,000',
+          fallbackPrice: '₩15,000',
         ),
       ],
     );
@@ -1118,10 +1133,13 @@ class _ShopScreenState extends State<ShopScreen> {
 
   Widget _diamondShopPackageCard({
     required Color panelBorder,
+    required String productId,
     required String title,
     required int diamondAmount,
-    required String cashLabel,
+    required String fallbackPrice,
   }) {
+    final priceLabel = IapService.instance.productDetails[productId]?.price ??
+        fallbackPrice;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -1175,14 +1193,13 @@ class _ShopScreenState extends State<ShopScreen> {
           SizedBox(
             width: 108,
             child: AppPanelButton(
-              label: cashLabel,
+              label: priceLabel,
               borderColor: panelBorder,
               foregroundColor: const Color(0xFFF3F7FF),
               backgroundColor: const Color(0xCC17304B),
               compact: true,
-              onPressed: () => _showNoticeDialog(
-                title: title,
-                body: '현금 결제 연동 전 임시 상품 목록입니다.\n실제 결제 기능은 아직 준비 중입니다.',
+              onPressed: () => unawaited(
+                IapService.instance.buyProduct(productId),
               ),
             ),
           ),
